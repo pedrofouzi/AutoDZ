@@ -157,11 +157,11 @@
                             <dt class="text-gray-400">Type de véhicule</dt>
                             <dd class="text-gray-800 font-semibold">{{ $annonce->vehicle_type ?? '—' }}</dd>
                         </div>
-                        {{-- État (Neuf / Occasion) --}}
+                        {{-- Véhicule neuf ? --}}
 <div>
-    <dt class="text-gray-400">État</dt>
+    <dt class="text-gray-400">Véhicule neuf ?</dt>
     <dd class="text-gray-800 font-semibold">
-        {{ ($annonce->condition ?? 'occasion') === 'neuf' ? 'Neuf' : 'Occasion' }}
+        {{ ($annonce->condition ?? 'non') === 'oui' ? 'Oui' : 'Non' }}
     </dd>
 </div>
 

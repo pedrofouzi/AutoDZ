@@ -59,6 +59,9 @@ Route::middleware(['auth', 'banned'])->group(function () {
 
     Route::get('/mes-annonces', [AnnonceController::class, 'myAds'])->name('annonces.my');
 
+    // API routes for dynamic data
+    Route::get('/api/models', [AnnonceController::class, 'getModels'])->name('api.models');
+
     /*
     |-------------------------
     | Favoris
@@ -126,7 +129,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | ADMIN (auth + admin)  ✅ (option: ajouter 'banned' aussi)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin','banned'])
+Route::middleware(['auth', 'admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {

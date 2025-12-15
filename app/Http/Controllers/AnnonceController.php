@@ -92,11 +92,11 @@ class AnnonceController extends Controller
     {
         $data = $request->validate([
             'titre'         => 'required|string|max:255',
-            'description'   => 'required|string',
+            'description'   => 'nullable|string',
             'prix'          => 'required|integer|min:0',
 
             'marque'        => 'required|string|max:100',
-            'modele'        => 'required|string|max:100',
+            'modele'        => 'nullable|string|max:100',
             'annee'         => 'nullable|integer|min:1980|max:' . (date('Y') + 1),
             'kilometrage'   => 'nullable|integer|min:0',
             'carburant'     => 'nullable|string|max:50',
@@ -105,17 +105,17 @@ class AnnonceController extends Controller
             'vehicle_type'  => 'nullable|string|max:50',
 
             'show_phone'    => ['nullable', 'boolean'],
-            'couleur'       => ['nullable', 'string', 'max:50'],
+            'couleur'       => ['nullable', 'in:Blanc,Noir,Gris,Argent,Bleu,Rouge,Vert,Beige,Orange,Marron'],
             'document_type' => ['nullable', 'in:carte_grise,procuration'],
             'finition'      => ['nullable', 'string', 'max:80'],
-            'condition'     => ['required', 'in:neuf,occasion'],
+            'condition'     => ['required', 'in:oui,non'],
 
-            'images'        => 'nullable|array|max:4',
+            'images'        => 'nullable|array|max:5',
             'images.*'      => 'image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
         $data['show_phone'] = $request->boolean('show_phone');
-        $data['condition']  = $request->input('condition', 'occasion');
+        $data['condition']  = $request->input('condition', 'non');
 
         $imagePaths = [
             'image_path'   => null,
@@ -128,7 +128,7 @@ class AnnonceController extends Controller
             $stored = [];
 
             foreach ($request->file('images') as $index => $file) {
-                if ($index >= 4) break;
+                if ($index >= 5) break;
 
                 $filename = 'annonces/' . Str::uuid() . '.jpg';
 
@@ -136,10 +136,10 @@ class AnnonceController extends Controller
 
                 $watermarkPath = public_path('watermark.png');
                 if (file_exists($watermarkPath)) {
-                    $watermark = Image::make($watermarkPath)->opacity(30)->resize($image->width() * 0.2, null, function ($constraint) {
+                    $watermark = Image::make($watermarkPath)->opacity(50)->resize($image->width() * 0.1, null, function ($constraint) {
                         $constraint->aspectRatio();
                     });
-                    $image->insert($watermark, 'center');
+                    $image->insert($watermark, 'bottom-right', 10, 10);
                 }
 
                 Storage::disk('public')->put($filename, (string) $image->encode('jpg', 90));
@@ -296,13 +296,22 @@ class AnnonceController extends Controller
             abort(403, 'Vous ne pouvez modifier que vos propres annonces.');
         }
 
+        // Filter out empty images from the request
+        if ($request->hasFile('images')) {
+            $request->merge([
+                'images' => array_filter($request->file('images'), function ($file) {
+                    return $file !== null && $file->getSize() > 0;
+                })
+            ]);
+        }
+
         $data = $request->validate([
             'titre'         => 'required|string|max:255',
             'description'   => 'nullable|string',
             'prix'          => 'required|integer|min:0',
 
             'marque'        => 'required|string|max:100',
-            'modele'        => 'required|string|max:100',
+            'modele'        => 'nullable|string|max:100',
             'annee'         => 'nullable|integer|min:1980|max:' . (date('Y') + 1),
             'kilometrage'   => 'nullable|integer|min:0',
             'carburant'     => 'nullable|string|max:50',
@@ -311,13 +320,68 @@ class AnnonceController extends Controller
             'vehicle_type'  => 'nullable|string|max:50',
 
             'show_phone'    => 'nullable|boolean',
-            'couleur'       => ['nullable', 'string', 'max:50'],
+            'couleur'       => ['nullable', 'in:Blanc,Noir,Gris,Argent,Bleu,Rouge,Vert,Beige,Orange,Marron'],
             'document_type' => ['nullable', 'in:carte_grise,procuration'],
             'finition'      => ['nullable', 'string', 'max:80'],
-            'condition'     => ['required', 'in:neuf,occasion'],
+            'condition'     => ['required', 'in:oui,non'],
+
+            'images'        => 'nullable|array|max:5',
+            'images.*'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data['show_phone'] = $request->boolean('show_phone');
+
+        // Handle image deletions
+        $slots = ['image_path', 'image_path_2', 'image_path_3', 'image_path_4'];
+        if ($request->filled('delete_images')) {
+            foreach ($request->input('delete_images', []) as $slot) {
+                if (in_array($slot, $slots) && $annonce->$slot) {
+                    Storage::disk('public')->delete($annonce->$slot);
+                    $data[$slot] = null;
+                }
+            }
+        }
+
+        // Handle new images
+        if ($request->hasFile('images')) {
+            // Count current images after deletion
+            $currentImages = [];
+            foreach ($slots as $slot) {
+                if (!empty($annonce->$slot) && (!isset($data[$slot]) || $data[$slot] !== null)) {
+                    $currentImages[] = $annonce->$slot;
+                }
+            }
+            $totalImages = count($currentImages) + count($request->file('images'));
+            if ($totalImages > 5) {
+                return back()->withErrors(['images' => 'Vous ne pouvez pas avoir plus de 5 images au total.']);
+            }
+
+            $stored = [];
+            foreach ($request->file('images') as $file) {
+                $filename = 'annonces/' . Str::uuid() . '.jpg';
+
+                $image = Image::make($file->getRealPath())->orientate();
+
+                $watermarkPath = public_path('watermark.png');
+                if (file_exists($watermarkPath)) {
+                    $watermark = Image::make($watermarkPath)->opacity(50)->resize($image->width() * 0.1, null, function ($constraint) {
+                        $constraint->aspectRatio();
+                    });
+                    $image->insert($watermark, 'bottom-right', 10, 10);
+                }
+
+                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 90));
+
+                $stored[] = $filename;
+            }
+
+            // Assign to available slots
+            foreach ($slots as $slot) {
+                if ((empty($annonce->$slot) || (isset($data[$slot]) && $data[$slot] === null)) && !empty($stored)) {
+                    $data[$slot] = array_shift($stored);
+                }
+            }
+        }
 
         $annonce->update($data);
 
@@ -362,5 +426,18 @@ class AnnonceController extends Controller
         $models = CarModel::orderBy('name')->get();
 
         return view('annonces.edit', compact('annonce', 'brands', 'models'));
+    }
+
+    public function getModels(Request $request)
+    {
+        $brand = $request->query('brand');
+        if (!$brand) {
+            return response()->json([]);
+        }
+
+        $models = CarModel::whereHas('brand', function($q) use($brand) {
+            $q->where('name', $brand);
+        })->orderBy('name')->get(['name']);
+        return response()->json($models->pluck('name'));
     }
 }

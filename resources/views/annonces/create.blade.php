@@ -5,7 +5,7 @@
     <div class="mb-6">
         <h1 class="text-2xl md:text-3xl font-bold mb-1">Déposer une annonce</h1>
         <p class="text-xs md:text-sm text-gray-500">
-            Remplissez les informations de votre vehicule et ajoutez jusqu'à 4 photos.
+            Remplissez les informations de votre vehicule et ajoutez jusqu'à 5 photos.
         </p>
     </div>
 
@@ -44,19 +44,19 @@
             </div>
         </div>
 
-        {{-- Etat --}}
+        {{-- Véhicule neuf ? --}}
         <div>
-            <label class="block text-xs font-semibold mb-2">État</label>
+            <label class="block text-xs font-semibold mb-2">Véhicule neuf ? <span class="text-red-500">*</span></label>
             <div class="flex gap-4 text-xs md:text-sm">
                 <label class="inline-flex items-center gap-2">
-                    <input type="radio" name="condition" value="occasion"
-                           {{ old('condition', 'occasion') === 'occasion' ? 'checked' : '' }}>
-                    Occasion
+                    <input type="radio" name="condition" value="non"
+                           {{ old('condition', 'non') === 'non' ? 'checked' : '' }}>
+                    Non
                 </label>
                 <label class="inline-flex items-center gap-2">
-                    <input type="radio" name="condition" value="neuf"
-                           {{ old('condition', 'occasion') === 'neuf' ? 'checked' : '' }}>
-                    Neuf
+                    <input type="radio" name="condition" value="oui"
+                           {{ old('condition', 'non') === 'oui' ? 'checked' : '' }}>
+                    Oui
                 </label>
             </div>
         </div>
@@ -64,13 +64,13 @@
         {{-- Titre + prix --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-                <label class="block text-xs font-semibold mb-1">Titre de l'annonce</label>
+                <label class="block text-xs font-semibold mb-1">Titre de l'annonce <span class="text-red-500">*</span></label>
                 <input type="text" name="titre" value="{{ old('titre') }}"
                        class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm"
                        placeholder="ex : Renault Clio 1.5 DCI 2018 très bon état">
             </div>
             <div>
-                <label class="block text-xs font-semibold mb-1">Prix (DA)</label>
+                <label class="block text-xs font-semibold mb-1">Prix (DA) <span class="text-red-500">*</span></label>
                 <input type="number" name="prix" value="{{ old('prix') }}"
                        class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm"
                        placeholder="ex : 2500000">
@@ -80,8 +80,8 @@
         {{-- Marque / modèle / ville --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-                <label class="block text-xs font-semibold mb-1">Marque</label>
-                <select name="marque" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <label class="block text-xs font-semibold mb-1">Marque <span class="text-red-500">*</span></label>
+                <select name="marque" id="marque_select" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
                     <option value="">Sélectionnez une marque</option>
                     @foreach($brands as $brand)
                         <option value="{{ $brand->name }}" {{ old('marque') === $brand->name ? 'selected' : '' }}>
@@ -93,13 +93,8 @@
 
             <div>
                 <label class="block text-xs font-semibold mb-1">Modèle</label>
-                <select name="modele" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
-                    <option value="">Sélectionnez un modèle</option>
-                    @foreach($models as $model)
-                        <option value="{{ $model->name }}" {{ old('modele') === $model->name ? 'selected' : '' }}>
-                            {{ $model->name }} @if($model->brand) ({{ $model->brand->name }}) @endif
-                        </option>
-                    @endforeach
+                <select name="modele" id="modele_select" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                    <option value="">Sélectionnez d'abord une marque</option>
                 </select>
             </div>
 
@@ -158,9 +153,19 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold mb-1">Couleur</label>
-                    <input type="text" name="couleur" value="{{ old('couleur') }}"
-                           class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm"
-                           placeholder="Ex : Blanc, Noir, Gris">
+                    <select name="couleur" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                        <option value="">— Choisir —</option>
+                        <option value="Blanc" {{ old('couleur') === 'Blanc' ? 'selected' : '' }}>Blanc</option>
+                        <option value="Noir" {{ old('couleur') === 'Noir' ? 'selected' : '' }}>Noir</option>
+                        <option value="Gris" {{ old('couleur') === 'Gris' ? 'selected' : '' }}>Gris</option>
+                        <option value="Argent" {{ old('couleur') === 'Argent' ? 'selected' : '' }}>Argent</option>
+                        <option value="Bleu" {{ old('couleur') === 'Bleu' ? 'selected' : '' }}>Bleu</option>
+                        <option value="Rouge" {{ old('couleur') === 'Rouge' ? 'selected' : '' }}>Rouge</option>
+                        <option value="Vert" {{ old('couleur') === 'Vert' ? 'selected' : '' }}>Vert</option>
+                        <option value="Beige" {{ old('couleur') === 'Beige' ? 'selected' : '' }}>Beige</option>
+                        <option value="Orange" {{ old('couleur') === 'Orange' ? 'selected' : '' }}>Orange</option>
+                        <option value="Marron" {{ old('couleur') === 'Marron' ? 'selected' : '' }}>Marron</option>
+                    </select>
                 </div>
 
                 <div>
@@ -205,25 +210,38 @@
         {{-- Images --}}
         <div>
             <label class="block text-xs font-semibold mb-1">
-                Photos du vehicule <span class="text-gray-400">(jusqu'à 4 photos)</span>
+                Photos du vehicule <span class="text-gray-400">(jusqu'à 5 photos)</span>
             </label>
             <p class="text-[11px] text-gray-500 mb-2">
                 Formats acceptés : JPG, JPEG, PNG, WEBP. Taille max : 4 Mo par photo.
             </p>
 
-            <input type="file"
-                   name="images[]"
-                   id="images_input"
-                   accept="image/*"
-                   multiple
-                   class="block w-full text-xs md:text-sm text-gray-600
-                          file:mr-3 file:py-2 file:px-4
-                          file:rounded-full file:border-0
-                          file:text-xs file:font-semibold
-                          file:bg-pink-50 file:text-pink-700
-                          hover:file:bg-pink-100">
+            <div id="images_container">
+                <!-- Initial input -->
+                <div class="image-input-group flex items-center gap-2 mb-2">
+                    <input type="file"
+                           name="images[]"
+                           accept="image/*"
+                           class="flex-1 text-xs md:text-sm text-gray-600
+                                  file:mr-3 file:py-1 file:px-3
+                                  file:rounded-lg file:border-0
+                                  file:text-xs file:font-semibold
+                                  file:bg-pink-50 file:text-pink-700
+                                  hover:file:bg-pink-100">
+                    <button type="button" class="remove-image-btn text-red-500 hover:text-red-700" style="display: none;">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
-            <div id="images_preview" class="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+            <button type="button" id="add_image_btn"
+                    class="mt-2 px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                + Ajouter une photo
+            </button>
+
+            <div id="images_preview" class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2"></div>
         </div>
 
         {{-- Actions --}}
@@ -260,33 +278,111 @@
         });
     });
 
-    const imagesInput = document.getElementById('images_input');
-    const imagesPreview = document.getElementById('images_preview');
+    // Dynamic models based on brand
+    const marqueSelect = document.getElementById('marque_select');
+    const modeleSelect = document.getElementById('modele_select');
 
-    if (imagesInput) {
-        imagesInput.addEventListener('change', function () {
-            const files = Array.from(this.files);
+    if (marqueSelect && modeleSelect) {
+        marqueSelect.addEventListener('change', function() {
+            const brand = this.value;
+            modeleSelect.innerHTML = '<option value="">Chargement...</option>';
 
-            if (files.length > 4) {
-                alert('Vous pouvez télécharger au maximum 4 photos.');
-                const dataTransfer = new DataTransfer();
-                files.slice(0, 4).forEach(file => dataTransfer.items.add(file));
-                this.files = dataTransfer.files;
+            if (!brand) {
+                modeleSelect.innerHTML = '<option value="">Sélectionnez d\'abord une marque</option>';
+                return;
             }
 
-            imagesPreview.innerHTML = '';
+            fetch(`/api/models?brand=${encodeURIComponent(brand)}`)
+                .then(response => response.json())
+                .then(models => {
+                    modeleSelect.innerHTML = '<option value="">Sélectionnez un modèle</option>';
+                    models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        modeleSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erreur lors du chargement des modèles:', error);
+                    modeleSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+                });
+        });
+    }
 
-            Array.from(this.files).forEach(file => {
+    const imagesContainer = document.getElementById('images_container');
+    const addImageBtn = document.getElementById('add_image_btn');
+    const imagesPreview = document.getElementById('images_preview');
+
+    let imageCount = 1;
+
+    addImageBtn.addEventListener('click', () => {
+        if (imageCount >= 5) {
+            alert('Vous pouvez ajouter au maximum 5 photos.');
+            return;
+        }
+
+        imageCount++;
+        const newInputGroup = document.createElement('div');
+        newInputGroup.className = 'image-input-group flex items-center gap-2 mb-2';
+        newInputGroup.innerHTML = `
+            <input type="file"
+                   name="images[]"
+                   accept="image/*"
+                   class="flex-1 text-xs md:text-sm text-gray-600
+                          file:mr-3 file:py-1 file:px-3
+                          file:rounded-lg file:border-0
+                          file:text-xs file:font-semibold
+                          file:bg-pink-50 file:text-pink-700
+                          hover:file:bg-pink-100">
+            <button type="button" class="remove-image-btn text-red-500 hover:text-red-700">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        `;
+        imagesContainer.appendChild(newInputGroup);
+        updateRemoveButtons();
+    });
+
+    function updateRemoveButtons() {
+        const groups = imagesContainer.querySelectorAll('.image-input-group');
+        groups.forEach((group, index) => {
+            const removeBtn = group.querySelector('.remove-image-btn');
+            if (groups.length > 1) {
+                removeBtn.style.display = 'block';
+            } else {
+                removeBtn.style.display = 'none';
+            }
+        });
+    }
+
+    imagesContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-image-btn')) {
+            e.target.closest('.image-input-group').remove();
+            imageCount--;
+            updateRemoveButtons();
+            updatePreview();
+        }
+    });
+
+    function updatePreview() {
+        imagesPreview.innerHTML = '';
+        const inputs = imagesContainer.querySelectorAll('input[type="file"]');
+        inputs.forEach((input, index) => {
+            if (input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = e => {
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.className = 'w-full h-24 object-cover rounded-xl border border-gray-200';
+                    img.className = 'w-full h-20 object-cover rounded-lg border border-gray-200';
                     imagesPreview.appendChild(img);
                 };
-                reader.readAsDataURL(file);
-            });
+                reader.readAsDataURL(input.files[0]);
+            }
         });
     }
+
+    imagesContainer.addEventListener('change', updatePreview);
 </script>
 @endsection
