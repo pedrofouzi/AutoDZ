@@ -28,6 +28,7 @@ class Annonce extends Model
         'image_path_2',
         'image_path_3',
         'image_path_4',
+        'image_path_5',
         'user_id',
         'show_phone',
         'condition',

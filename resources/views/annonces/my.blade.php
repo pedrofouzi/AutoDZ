@@ -31,7 +31,7 @@
                 <div class="bg-white rounded-2xl shadow flex overflow-hidden">
                     {{-- Image à gauche --}}
                     <img src="{{ $image }}" alt="Photo"
-                         class="w-56 h-40 object-cover">
+                         class="object-cover" style="width: 10cm; height: 5cm;">
 
                     {{-- Infos centre --}}
                     <div class="flex-1 px-4 py-3 flex flex-col justify-between">
@@ -53,7 +53,7 @@
                     </div>
 
                     {{-- Bloc droite : prix + actions --}}
-                    <div class="w-52 px-4 py-3 flex flex-col items-end justify-between text-right border-l border-gray-100">
+                    <div class="w-60 px-4 py-3 flex flex-col items-end justify-between text-right border-l border-gray-100">
                         <div>
                             <p class="text-sm md:text-base font-extrabold text-pink-600">
                                 {{ number_format($annonce->prix, 0, ',', ' ') }} DA
@@ -81,32 +81,29 @@
                                 @endif
                         </div>
 
-                        <div class="mt-2 text-[11px] flex flex-col items-end space-y-1">
-                            <a href="{{ route('annonces.show', $annonce) }}"
-                               class="text-pink-600 hover:text-pink-700">
-                                Voir le détail
-                            </a>
+                        <div class="mt-3 flex flex-col gap-2 w-full items-end">
+    <a href="{{ route('annonces.show', $annonce) }}"
+       class="w-full text-center px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600">
+        Voir le détail
+    </a>
 
-                            <a href="{{ route('annonces.edit', $annonce) }}"
-   class="inline-flex items-center gap-2 text-xs font-semibold text-gray-700 hover:text-pink-600">
-   <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-     <path d="M13.586 3.586a2 2 0 012.828 2.828l-9.5 9.5a1 1 0 01-.39.242l-3 1a1 1 0 01-1.265-1.265l1-3a1 1 0 01.242-.39l9.5-9.5z"/>
-   </svg>
-   Éditer l’annonce
-</a>
+    <a href="{{ route('annonces.edit', $annonce) }}"
+       class="w-full text-center px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600">
+        Éditer
+    </a>
 
-                            <form method="POST" action="{{ route('annonces.destroy', $annonce) }}"
-      onsubmit="return confirm('Supprimer cette annonce ?');">
-  @csrf @method('DELETE')
-  <button type="submit"
-          class="inline-flex items-center gap-2 text-xs font-semibold text-red-600 hover:text-red-700">
-    <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd" d="M8.5 3a1 1 0 00-1 1v1H5a1 1 0 100 2h.5l.7 9.1A2 2 0 008.2 18h3.6a2 2 0 002-1.9l.7-9.1H15a1 1 0 100-2h-2.5V4a1 1 0 00-1-1h-3zM9.5 5h1V4h-1v1z" clip-rule="evenodd"/>
-    </svg>
-    Supprimer l’annonce
-  </button>
-</form>
-                        </div>
+    <form method="POST" action="{{ route('annonces.destroy', $annonce) }}"
+          class="w-full"
+          onsubmit="return confirm('Supprimer cette annonce ?');">
+        @csrf
+        @method('DELETE')
+
+        <button type="submit"
+                class="w-full text-center px-3 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50">
+            Supprimer
+        </button>
+    </form>
+</div>
                     </div>
                 </div>
             @endforeach

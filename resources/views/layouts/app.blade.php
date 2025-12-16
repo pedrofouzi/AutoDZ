@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
     <style>
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; overflow-y: scroll; }
 </style>
 <head>
     <meta charset="utf-8">
@@ -157,8 +157,11 @@
     {{-- CONTENU PAGE --}}
    <main class="py-6 md:py-8">
     <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        @yield('content')
-        {{ $slot ?? '' }}
+        @isset($slot)
+            {{ $slot }}
+        @else
+            @yield('content')
+        @endisset
     </div>
 </main>
 

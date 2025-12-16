@@ -3,9 +3,9 @@
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-6 md:py-8">
     {{-- Title + total results --}}
-    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-2 mb-6">
+    <div class="flex flex-row items-end justify-between gap-2 mb-6">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold">
+            <h1 class="text-3xl font-bold">
                 Voitures d'occasion
                 @if($annonces->total())
                     <span class="text-pink-600 font-extrabold">
@@ -13,13 +13,13 @@
                     </span>
                 @endif
             </h1>
-            <p class="text-xs md:text-sm text-gray-500 mt-1">
+            <p class="text-sm text-gray-500 mt-1">
                 Affinez votre recherche avec les filtres à gauche.
             </p>
         </div>
 
         {{-- Sort selector (connecté au contrôleur) --}}
-        <div class="mt-2 md:mt-0">
+        <div class="mt-2">
             <label class="text-xs text-gray-500 block mb-1">Trier par :</label>
 
             <form method="GET" action="{{ route('annonces.search') }}">
@@ -33,7 +33,7 @@
                 @endphp
 
                 <select name="sort"
-                        class="border rounded-lg px-3 py-2 text-xs md:text-sm"
+                        class="border rounded-lg px-3 py-2 text-sm"
                         onchange="this.form.submit()">
                     <option value="latest"     {{ $currentSort === 'latest' ? 'selected' : '' }}>Les plus récentes</option>
                     <option value="price_asc"  {{ $currentSort === 'price_asc' ? 'selected' : '' }}>Prix croissant</option>
@@ -236,21 +236,21 @@
                 @foreach ($annonces as $annonce)
                     {{-- One result card --}}
                     <a href="{{ route('annonces.show', $annonce->id) }}"
-                       class="bg-white rounded-2xl shadow flex flex-col md:flex-row overflow-hidden hover:shadow-md transition">
+                       class="bg-white rounded-2xl shadow flex flex-row overflow-hidden hover:shadow-md transition">
 
                         {{-- Image --}}
                         <img
                             src="{{ $annonce->image_path ? asset('storage/'.$annonce->image_path) : asset('images/placeholder-car.jpg') }}"
                             alt="Photo voiture"
-                            class="w-full md:w-64 h-44 object-cover"
+                            class="w-64 h-44 object-cover shrink-0"
                         />
 
                         {{-- Content --}}
                         <div class="flex-1 p-4 flex flex-col justify-between gap-2">
-                            <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
+                            <div class="flex flex-row justify-between items-start gap-2">
                                 <div>
                                     {{-- Title --}}
-                                    <h2 class="text-base md:text-lg font-semibold">
+                                    <h2 class="text-base font-semibold">
                                         {{ $annonce->titre }}
                                     </h2>
                                     @if(($annonce->views ?? 0) >= 50)
@@ -293,14 +293,14 @@
                                     </p>
 
                                     {{-- Short description --}}
-                                    <p class="mt-2 text-xs md:text-sm text-gray-600 line-clamp-2">
+                                    <p class="mt-2 text-xs text-gray-600 line-clamp-2">
                                         {{ \Illuminate\Support\Str::limit($annonce->description, 150) }}
                                     </p>
                                 </div>
 
                                 {{-- Price & city --}}
-                                <div class="text-right md:min-w-[120px]">
-                                    <p class="text-lg md:text-xl font-bold text-pink-600">
+                                <div class="text-right min-w-[120px]">
+                                    <p class="text-lg font-bold text-pink-600">
                                         {{ number_format($annonce->prix, 0, ',', ' ') }} DA
                                     </p>
                                     <p class="text-xs text-gray-500 mt-1">
@@ -309,7 +309,7 @@
                                 </div>
                             </div>
 
-                            {{-- Actions row (favorites) --}}
+                            {{-- Actions row (favorites) - Always show button for consistent layout --}}
                             @php
                                 $isFavorite = auth()->check()
                                     ? $annonce->favorites->contains('user_id', auth()->id())
@@ -341,13 +341,15 @@
                                         @csrf
                                     </form>
                                 @else
-                                    {{-- Non connecté : lien vers login --}}
-                                    <a href="{{ route('login') }}"
-                                       onclick="event.stopPropagation();"
-                                       class="flex items-center gap-1 hover:text-pink-600">
+                                    {{-- Non connecté : afficher le même bouton pour cohérence du design --}}
+                                    <button
+                                        type="button"
+                                        onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('login') }}';"
+                                        class="flex items-center gap-1 hover:text-pink-600"
+                                    >
                                         <span>♡</span>
                                         <span>Ajouter aux favoris</span>
-                                    </a>
+                                    </button>
                                 @endauth
                             </div>
                         </div>

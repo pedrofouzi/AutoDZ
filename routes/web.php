@@ -140,6 +140,7 @@ Route::middleware(['auth', 'admin'])
         Route::get('/annonces', [AdminAnnonceController::class, 'index'])->name('annonces.index');
         Route::patch('/annonces/{annonce}/toggle', [AdminAnnonceController::class, 'toggle'])->name('annonces.toggle');
         Route::delete('/annonces/{annonce}', [AdminAnnonceController::class, 'destroy'])->name('annonces.destroy');
+        Route::post('/annonces/bulk-action', [AdminAnnonceController::class, 'bulkAction'])->name('annonces.bulkAction');
 
         // Users
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');

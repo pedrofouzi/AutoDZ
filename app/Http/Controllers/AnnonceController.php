@@ -14,18 +14,14 @@ use Intervention\Image\Facades\Image;
 
 class AnnonceController extends Controller
 {
-    /**
-     * Home page: search form + sections.
-     */
     public function index(Request $request)
     {
         $marques = CarBrand::orderBy('name')->get();
         $modeles = CarModel::orderBy('name')->get();
 
-        $baseQuery = Annonce::query()->latest();
-
-        // Si tu veux que la home n’affiche que les actives :
-        $baseQuery->where('is_active', true);
+        $baseQuery = Annonce::query()
+            ->where('is_active', true)
+            ->latest();
 
         $filteredQuery = (clone $baseQuery)->filter($request->only([
             'marque',
@@ -105,9 +101,11 @@ class AnnonceController extends Controller
             'vehicle_type'  => 'nullable|string|max:50',
 
             'show_phone'    => ['nullable', 'boolean'],
-            'couleur'       => ['nullable', 'in:Blanc,Noir,Gris,Argent,Bleu,Rouge,Vert,Beige,Orange,Marron'],
+            'couleur'       => ['nullable', 'string', 'max:50'],
             'document_type' => ['nullable', 'in:carte_grise,procuration'],
             'finition'      => ['nullable', 'string', 'max:80'],
+
+            // ✅ Véhicule neuf ? oui/non
             'condition'     => ['required', 'in:oui,non'],
 
             'images'        => 'nullable|array|max:5',
@@ -122,7 +120,15 @@ class AnnonceController extends Controller
             'image_path_2' => null,
             'image_path_3' => null,
             'image_path_4' => null,
+            'image_path_5' => null,
         ];
+
+        // watermark chargé 1 fois
+        $watermarkBase = null;
+        $watermarkPath = public_path('watermark.png');
+        if (file_exists($watermarkPath)) {
+            $watermarkBase = Image::make($watermarkPath)->opacity(45);
+        }
 
         if ($request->hasFile('images')) {
             $stored = [];
@@ -131,19 +137,26 @@ class AnnonceController extends Controller
                 if ($index >= 5) break;
 
                 $filename = 'annonces/' . Str::uuid() . '.jpg';
-
                 $image = Image::make($file->getRealPath())->orientate();
 
-                $watermarkPath = public_path('watermark.png');
-                if (file_exists($watermarkPath)) {
-                    $watermark = Image::make($watermarkPath)->opacity(50)->resize($image->width() * 0.1, null, function ($constraint) {
-                        $constraint->aspectRatio();
+                // ✅ perf: resize
+                // Alléger le poids pour accélérer l'upload
+                $image->resize(1280, null, function ($c) {
+                    $c->aspectRatio();
+                    $c->upsize();
+                });
+
+                // ✅ watermark léger
+                if ($watermarkBase) {
+                    $wm = clone $watermarkBase;
+                    $wm->resize((int) ($image->width() * 0.18), null, function ($c) {
+                        $c->aspectRatio();
                     });
-                    $image->insert($watermark, 'bottom-right', 10, 10);
+                    // Placer le watermark au centre de l'image
+                    $image->insert($wm, 'center');
                 }
 
-                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 90));
-
+                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 70));
                 $stored[] = $filename;
             }
 
@@ -151,10 +164,12 @@ class AnnonceController extends Controller
             if (isset($stored[1])) $imagePaths['image_path_2'] = $stored[1];
             if (isset($stored[2])) $imagePaths['image_path_3'] = $stored[2];
             if (isset($stored[3])) $imagePaths['image_path_4'] = $stored[3];
+            if (isset($stored[4])) $imagePaths['image_path_5'] = $stored[4];
         }
 
         $data = array_merge($data, $imagePaths);
         $data['user_id'] = auth()->id() ?? 1;
+        $data['is_active'] = false; // ✅ En attente de validation admin par défaut
 
         $annonce = Annonce::create($data);
 
@@ -164,42 +179,65 @@ class AnnonceController extends Controller
     }
 
     public function show(Annonce $annonce)
-    {
-        $isOwner = auth()->check() && auth()->id() === $annonce->user_id;
-        $isAdmin = auth()->check() && auth()->user()->is_admin;
+{
+    $isOwner = auth()->check() && auth()->id() === $annonce->user_id;
+    $isAdmin = auth()->check() && auth()->user()->is_admin;
 
-        // annonce désactivée : visible uniquement par owner ou admin
-        if (!$annonce->is_active && !($isOwner || $isAdmin)) {
-            abort(404);
-        }
-
-        // vues : 1 seule fois par session + on ne compte pas owner/admin
-        if (!$isOwner && !$isAdmin) {
-            $key = 'viewed_annonce_' . $annonce->id;
-            if (!session()->has($key)) {
-                $annonce->increment('views');
-                session()->put($key, true);
-            }
-        }
-
-        $annonce->load('user');
-
-        $similarAds = Annonce::where('id', '!=', $annonce->id)
-            ->where('marque', $annonce->marque)
-            ->where('is_active', true)
-            ->orderByDesc('created_at')
-            ->take(4)
-            ->get();
-
-        return view('annonces.show', compact('annonce', 'similarAds'));
+    if (!$annonce->is_active && !($isOwner || $isAdmin)) {
+        abort(404);
     }
+
+    // ✅ 1 vue max par session (pas owner/admin)
+    if (!$isOwner && !$isAdmin) {
+        $key = 'viewed_annonce_' . $annonce->id;
+        if (!session()->has($key)) {
+            $annonce->increment('views');
+            session()->put($key, true);
+        }
+    }
+
+    $annonce->load('user');
+
+    // ✅ Images : 5 slots fixes (filtre null)
+    $images = collect([
+        $annonce->image_path,
+        $annonce->image_path_2,
+        $annonce->image_path_3,
+        $annonce->image_path_4,
+        $annonce->image_path_5,
+    ])->filter()->values()
+      ->map(function ($path) {
+          $path = ltrim($path, '/');
+          $path = preg_replace('#^storage/#', '', $path); // évite storage/storage
+          return asset('storage/' . $path);
+      })->values();
+
+    // ✅ fallback si aucune image en storage
+    if ($images->isEmpty()) {
+        if (!empty($annonce->image_url)) {
+            $images = collect([$annonce->image_url]);
+        } else {
+            $images = collect([asset('images/placeholder-car.jpg')]);
+        }
+    }
+
+    // ✅ Annonces similaires (même marque)
+    $similarAds = Annonce::where('id', '!=', $annonce->id)
+        ->where('is_active', true)
+        ->where('marque', $annonce->marque)
+        ->latest()
+        ->take(4)
+        ->get();
+
+    // ✅ IMPORTANT : on passe TOUT ce que la vue utilise
+    return view('annonces.show', compact('annonce', 'images', 'similarAds'));
+}
+
 
     public function search(Request $request)
     {
-        // front = uniquement annonces actives
         $query = Annonce::query()->where('is_active', true);
 
-        // vehicle_type: ignorer si vide ou "any"
         $type = $request->input('vehicle_type');
         if ($type && $type !== 'any') {
             $query->where('vehicle_type', $type);
@@ -245,15 +283,13 @@ class AnnonceController extends Controller
         }
 
         if ($q = $request->input('q')) {
-            $query->where(function ($qBuilder) use ($q) {
-                $qBuilder
-                    ->where('titre', 'like', '%' . $q . '%')
-                    ->orWhere('marque', 'like', '%' . $q . '%');
+            $query->where(function ($qb) use ($q) {
+                $qb->where('titre', 'like', '%' . $q . '%')
+                   ->orWhere('marque', 'like', '%' . $q . '%');
             });
         }
 
         $sort = $request->input('sort', 'latest');
-
         switch ($sort) {
             case 'price_asc':  $query->orderBy('prix', 'asc'); break;
             case 'price_desc': $query->orderBy('prix', 'desc'); break;
@@ -265,12 +301,12 @@ class AnnonceController extends Controller
             default:           $query->orderBy('created_at', 'desc'); break;
         }
 
-      $annonces = $query->select([
-        'id','titre','prix','marque','modele','annee','kilometrage','carburant','boite_vitesse','ville',
-        'image_path','views','created_at'
-    ])
-    ->paginate(15)
-    ->withQueryString();
+        $annonces = $query->select([
+                'id','titre','prix','marque','modele','annee','kilometrage','carburant','boite_vitesse','ville',
+                'image_path','views','created_at','condition'
+            ])
+            ->paginate(15)
+            ->withQueryString();
 
         $filters = $request->only([
             'q','marque','modele','wilaya','carburant','price_max',
@@ -296,12 +332,12 @@ class AnnonceController extends Controller
             abort(403, 'Vous ne pouvez modifier que vos propres annonces.');
         }
 
-        // Filter out empty images from the request
+        // Nettoyer fichiers vides
         if ($request->hasFile('images')) {
             $request->merge([
-                'images' => array_filter($request->file('images'), function ($file) {
-                    return $file !== null && $file->getSize() > 0;
-                })
+                'images' => array_values(array_filter($request->file('images'), function ($file) {
+                    return $file && $file->getSize() > 0;
+                }))
             ]);
         }
 
@@ -320,64 +356,86 @@ class AnnonceController extends Controller
             'vehicle_type'  => 'nullable|string|max:50',
 
             'show_phone'    => 'nullable|boolean',
-            'couleur'       => ['nullable', 'in:Blanc,Noir,Gris,Argent,Bleu,Rouge,Vert,Beige,Orange,Marron'],
+            'couleur'       => ['nullable', 'string', 'max:50'],
             'document_type' => ['nullable', 'in:carte_grise,procuration'],
             'finition'      => ['nullable', 'string', 'max:80'],
+
+            // ✅ Véhicule neuf ? oui/non
             'condition'     => ['required', 'in:oui,non'],
 
+            // ✅ suppression images existantes : delete_images[slot] = 0/1
+            'delete_images'   => 'nullable|array',
+            'delete_images.*' => 'in:0,1',
+
             'images'        => 'nullable|array|max:5',
-            'images.*'      => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'images.*'      => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
 
         $data['show_phone'] = $request->boolean('show_phone');
+        $data['condition']  = $request->input('condition', $annonce->condition ?? 'non');
 
-        // Handle image deletions
-        $slots = ['image_path', 'image_path_2', 'image_path_3', 'image_path_4'];
-        if ($request->filled('delete_images')) {
-            foreach ($request->input('delete_images', []) as $slot) {
-                if (in_array($slot, $slots) && $annonce->$slot) {
-                    Storage::disk('public')->delete($annonce->$slot);
-                    $data[$slot] = null;
-                }
+        $slots = ['image_path','image_path_2','image_path_3','image_path_4','image_path_5'];
+        $maxImages = 5;
+
+        // 1) Suppression demandée (delete_images[slot]=1)
+        $deleteMap = $request->input('delete_images', []);
+        foreach ($deleteMap as $slot => $flag) {
+            if ($flag === '1' && in_array($slot, $slots, true) && !empty($annonce->$slot)) {
+                Storage::disk('public')->delete($annonce->$slot);
+                $data[$slot] = null;
             }
         }
 
-        // Handle new images
+        // 2) watermark chargé une seule fois
+        $watermarkBase = null;
+        $watermarkPath = public_path('watermark.png');
+        if (file_exists($watermarkPath)) {
+            $watermarkBase = Image::make($watermarkPath)->opacity(45);
+        }
+
+        // 3) ajout nouvelles images (sans dépasser 5 total)
         if ($request->hasFile('images')) {
-            // Count current images after deletion
-            $currentImages = [];
+
+            // compter images restantes après suppressions
+            $current = 0;
             foreach ($slots as $slot) {
-                if (!empty($annonce->$slot) && (!isset($data[$slot]) || $data[$slot] !== null)) {
-                    $currentImages[] = $annonce->$slot;
-                }
+                $willBeDeleted = array_key_exists($slot, $data) && $data[$slot] === null;
+                if (!empty($annonce->$slot) && !$willBeDeleted) $current++;
             }
-            $totalImages = count($currentImages) + count($request->file('images'));
-            if ($totalImages > 5) {
-                return back()->withErrors(['images' => 'Vous ne pouvez pas avoir plus de 5 images au total.']);
+
+            $incoming = count($request->file('images'));
+            if (($current + $incoming) > $maxImages) {
+                return back()->withErrors(['images' => "Max {$maxImages} images au total."])->withInput();
             }
 
             $stored = [];
             foreach ($request->file('images') as $file) {
                 $filename = 'annonces/' . Str::uuid() . '.jpg';
-
                 $image = Image::make($file->getRealPath())->orientate();
 
-                $watermarkPath = public_path('watermark.png');
-                if (file_exists($watermarkPath)) {
-                    $watermark = Image::make($watermarkPath)->opacity(50)->resize($image->width() * 0.1, null, function ($constraint) {
-                        $constraint->aspectRatio();
+                // Alléger le poids pour accélérer l'upload
+                $image->resize(1280, null, function ($c) {
+                    $c->aspectRatio();
+                    $c->upsize();
+                });
+
+                if ($watermarkBase) {
+                    $wm = clone $watermarkBase;
+                    $wm->resize((int) ($image->width() * 0.18), null, function ($c) {
+                        $c->aspectRatio();
                     });
-                    $image->insert($watermark, 'bottom-right', 10, 10);
+                    // Placer le watermark au centre de l'image
+                    $image->insert($wm, 'center');
                 }
 
-                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 90));
-
+                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 70));
                 $stored[] = $filename;
             }
 
-            // Assign to available slots
+            // assigner aux slots vides (ou supprimés)
             foreach ($slots as $slot) {
-                if ((empty($annonce->$slot) || (isset($data[$slot]) && $data[$slot] === null)) && !empty($stored)) {
+                $slotEmptyNow = empty($annonce->$slot) || (array_key_exists($slot, $data) && $data[$slot] === null);
+                if ($slotEmptyNow && !empty($stored)) {
                     $data[$slot] = array_shift($stored);
                 }
             }
@@ -401,6 +459,7 @@ class AnnonceController extends Controller
             $annonce->image_path_2,
             $annonce->image_path_3,
             $annonce->image_path_4,
+            $annonce->image_path_5,
         ];
 
         foreach ($images as $path) {
@@ -418,8 +477,12 @@ class AnnonceController extends Controller
 
     public function edit(Annonce $annonce)
     {
-        if ($annonce->user_id !== Auth::id()) {
-            abort(403, 'Vous ne pouvez modifier que vos propres annonces.');
+        // Autoriser l'édition au propriétaire ou à l'admin
+        $isOwner = Auth::check() && $annonce->user_id === Auth::id();
+        $isAdmin = Auth::check() && optional(Auth::user())->is_admin;
+
+        if (!$isOwner && !$isAdmin) {
+            abort(403, 'Accès refusé : vous ne pouvez modifier que vos propres annonces.');
         }
 
         $brands = CarBrand::orderBy('name')->get();
@@ -431,13 +494,14 @@ class AnnonceController extends Controller
     public function getModels(Request $request)
     {
         $brand = $request->query('brand');
-        if (!$brand) {
-            return response()->json([]);
-        }
+        if (!$brand) return response()->json([]);
 
-        $models = CarModel::whereHas('brand', function($q) use($brand) {
-            $q->where('name', $brand);
-        })->orderBy('name')->get(['name']);
+        $models = CarModel::whereHas('brand', function ($q) use ($brand) {
+                $q->where('name', $brand);
+            })
+            ->orderBy('name')
+            ->get(['name']);
+
         return response()->json($models->pluck('name'));
     }
 }

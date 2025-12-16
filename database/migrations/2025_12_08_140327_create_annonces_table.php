@@ -28,6 +28,7 @@ return new class extends Migration
     $table->string('carburant');      // ex: essence, diesel
     $table->string('boite_vitesse');  // ex: manuelle, automatique
     $table->string('ville');
+    $table->string('condition')->default('non');
 
     // 🔹 Image principale
     $table->string('image_path')->nullable();

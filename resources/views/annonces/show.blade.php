@@ -3,32 +3,8 @@
 @section('content')
     @php
         // Build an array of up to 4 image URLs from the stored paths
-        $rawImages = [
-            $annonce->image_path,
-            $annonce->image_path_2 ?? null,
-            $annonce->image_path_3 ?? null,
-            $annonce->image_path_4 ?? null,
-        ];
+        $mainImage = $images[0] ?? asset('images/placeholder-car.jpg');
 
-        // Map storage paths to full URLs and filter null values
-        $images = [];
-        foreach ($rawImages as $path) {
-            if ($path) {
-                $images[] = asset('storage/' . $path);
-            }
-        }
-
-        // Fallback if no storage images / old data
-        if (empty($images)) {
-            if ($annonce->image_url) {
-                $images[] = $annonce->image_url;
-            } else {
-                $images[] = asset('images/placeholder-car.jpg');
-            }
-        }
-
-        // Main image is always the first one
-        $mainImage = $images[0];
 
         // Normalize some fields (support both annee/year, kilometrage/mileage)
         $year       = $annonce->annee ?? $annonce->year;
@@ -88,12 +64,14 @@
             {{-- LEFT: main image slider + description --}}
             <div class="space-y-4">
                 {{-- Main image slider --}}
-                <div class="relative bg-white rounded-2xl shadow overflow-hidden">
+                <div class="min-h-[70vh] flex items-center justify-center">
+                    <div class="relative bg-white rounded-3xl shadow-lg overflow-hidden max-w-4xl mx-auto my-12">
                     {{-- Main displayed image --}}
                     <img id="main_car_image"
                          src="{{ $mainImage }}"
                          alt="Photo véhicule"
-                         class="w-full h-72 md:h-96 object-cover transition-all duration-200">
+                            class="w-full h-80 md:h-[28rem] object-cover transition-all duration-200 cursor-pointer hover:opacity-95"
+                         onclick="openLightbox(0)">
 
                     {{-- Left arrow --}}
                     <button type="button"
@@ -109,10 +87,11 @@
                         ›
                     </button>
 
-                    {{-- Counter bottom-left --}}
-                    <div id="image_counter"
-                         class="absolute bottom-3 left-3 bg-white/90 text-[11px] md:text-xs px-2 py-1 rounded-full shadow">
-                        1 / {{ count($images) }}
+                        {{-- Counter bottom-left --}}
+                        <div id="image_counter"
+                             class="absolute bottom-3 left-3 bg-white/90 text-[11px] md:text-xs px-2 py-1 rounded-full shadow">
+                            1 / {{ count($images) }}
+                        </div>
                     </div>
                 </div>
 
@@ -375,10 +354,54 @@
         @endif
     </div>
 
+    {{-- Lightbox modal --}}
+    <div id="lightbox" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center" style="z-index: 9999;">
+        <div class="relative w-full h-full">
+            <!-- Image centrée + contrôles overlay liés à l'image -->
+            <div class="flex items-center justify-center p-6 w-full h-full">
+                <div class="relative inline-block w-[92vw] h-[88vh]">
+                    <!-- Bouton fermer (sur la photo, coin haut droit) -->
+                    <button onclick="closeLightbox()" 
+                            class="absolute top-2 right-2 w-12 h-12 rounded-full bg-white/90 text-gray-800 text-2xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            style="z-index: 10000;">
+                        ✕
+                    </button>
+                    <img id="lightbox_image" 
+                         src="" 
+                         alt="Photo agrandie" 
+                         class="max-w-full max-h-full w-full h-full object-contain rounded-2xl shadow-2xl">
+
+                    <!-- Bouton précédent (sur l'image) -->
+                    <button id="lightbox_prev_btn" onclick="prevLightboxImage(event)" 
+                            class="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 text-gray-800 text-4xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            style="z-index: 10000;">
+                        ‹
+                    </button>
+
+                    <!-- Bouton suivant (sur l'image) -->
+                    <button id="lightbox_next_btn" onclick="nextLightboxImage(event)" 
+                            class="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 text-gray-800 text-4xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            style="z-index: 10000;">
+                        ›
+                    </button>
+
+                    <!-- Compteur (sur l'image, en bas-centre) -->
+                    <div id="lightbox_counter" 
+                         class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 text-gray-800 px-5 py-2 rounded-full text-sm font-semibold shadow-xl"
+                         style="z-index: 10000;">
+                        1 / 1
+                    </div>
+                </div>
+            </div>
+    </div>
+
     {{-- Simple image slider --}}
     <script>
+        const images = @json($images);
+        let currentIndex = 0;
+        let lightboxIndex = 0;
+
         document.addEventListener('DOMContentLoaded', () => {
-            const images   = @json($images);
             const mainImg  = document.getElementById('main_car_image');
             const prevBtn  = document.getElementById('prev_image_btn');
             const nextBtn  = document.getElementById('next_image_btn');
@@ -386,10 +409,9 @@
 
             if (!mainImg || !images.length) return;
 
-            let currentIndex = 0;
-
             function updateImage() {
                 mainImg.src = images[currentIndex];
+                mainImg.setAttribute('onclick', `openLightbox(${currentIndex})`);
                 if (counter) {
                     counter.textContent = (currentIndex + 1) + ' / ' + images.length;
                 }
@@ -416,5 +438,80 @@
                 });
             }
         });
+
+        function openLightbox(index) {
+            lightboxIndex = index;
+            updateLightbox();
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            // Masquer les boutons si une seule image
+            const prevBtn = document.getElementById('lightbox_prev_btn');
+            const nextBtn = document.getElementById('lightbox_next_btn');
+            if (images.length <= 1) {
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+            } else {
+                if (prevBtn) prevBtn.style.display = 'flex';
+                if (nextBtn) nextBtn.style.display = 'flex';
+            }
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function updateLightbox() {
+            const lightboxImg = document.getElementById('lightbox_image');
+            const lightboxCounter = document.getElementById('lightbox_counter');
+            if (lightboxImg && images[lightboxIndex]) {
+                lightboxImg.src = images[lightboxIndex];
+            }
+            if (lightboxCounter) {
+                lightboxCounter.textContent = (lightboxIndex + 1) + ' / ' + images.length;
+            }
+        }
+
+        function prevLightboxImage(e) {
+            if (e) e.stopPropagation();
+            lightboxIndex = (lightboxIndex - 1 + images.length) % images.length;
+            updateLightbox();
+        }
+
+        function nextLightboxImage(e) {
+            if (e) e.stopPropagation();
+            lightboxIndex = (lightboxIndex + 1) % images.length;
+            updateLightbox();
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            if (!lightbox.classList.contains('hidden')) {
+                if (e.key === 'Escape') closeLightbox();
+                if (e.key === 'ArrowLeft') prevLightboxImage();
+                if (e.key === 'ArrowRight') nextLightboxImage();
+            }
+        });
+
+        // Touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.getElementById('lightbox').addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.getElementById('lightbox').addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) nextLightboxImage();
+            if (touchEndX > touchStartX + 50) prevLightboxImage();
+        }
     </script>
 @endsection

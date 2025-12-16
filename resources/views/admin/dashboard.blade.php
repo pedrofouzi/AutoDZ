@@ -63,10 +63,22 @@
                             </p>
                         </div>
 
-                        <div class="text-right shrink-0">
-                            <p class="text-sm font-extrabold text-pink-600">
+                        <div class="text-right shrink-0 flex items-center gap-2">
+                            <p class="text-sm font-extrabold text-pink-600 mr-2">
                                 {{ number_format($ad->prix ?? 0, 0, ',', ' ') }} DA
                             </p>
+                            <form method="POST" action="{{ route('admin.annonces.toggle', $ad) }}">
+                                @csrf
+                                @method('PATCH')
+                                <button class="px-3 py-1 rounded-full text-xs border {{ $ad->is_active ? 'border-gray-200 text-gray-700 hover:border-pink-500 hover:text-pink-600' : 'border-pink-500 text-pink-600 hover:bg-pink-50' }}">
+                                    {{ $ad->is_active ? 'Désactiver' : 'Activer' }}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.annonces.destroy', $ad) }}" onsubmit="return confirm('Supprimer définitivement cette annonce ?')">
+                                @csrf
+                                @method('DELETE')
+                                <button class="px-3 py-1 rounded-full text-xs border border-red-200 text-red-600 hover:bg-red-50">Supprimer</button>
+                            </form>
                         </div>
                     </div>
                 @empty
