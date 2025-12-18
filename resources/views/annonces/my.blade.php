@@ -92,17 +92,11 @@
         Éditer
     </a>
 
-    <form method="POST" action="{{ route('annonces.destroy', $annonce) }}"
-          class="w-full"
-          onsubmit="return confirm('Supprimer cette annonce ?');">
-        @csrf
-        @method('DELETE')
-
-        <button type="submit"
-                class="w-full text-center px-3 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50">
-            Supprimer
-        </button>
-    </form>
+    <button type="button"
+            onclick="openDeleteModal({{ $annonce->id }}, '{{ addslashes($annonce->titre) }}')"
+            class="w-full text-center px-3 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50">
+        Supprimer
+    </button>
 </div>
                     </div>
                 </div>
@@ -115,4 +109,61 @@
         </div>
     @endif
 </div>
+
+{{-- Modal de confirmation de suppression --}}
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 p-6">
+        <h3 class="text-xl font-bold mb-4">Supprimer l'annonce</h3>
+        <p class="text-sm text-gray-600 mb-4" id="deleteAnnonceTitle"></p>
+        
+        <form id="deleteForm" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            
+            <div class="mb-4">
+                <p class="text-sm font-semibold mb-3">Avez-vous vendu ce véhicule ?</p>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="was_sold" value="oui" class="text-pink-600 focus:ring-pink-500" required>
+                        <span class="text-sm">Oui</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="radio" name="was_sold" value="non" class="text-pink-600 focus:ring-pink-500" required>
+                        <span class="text-sm">Non</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button type="button" onclick="closeDeleteModal()"
+                        class="flex-1 px-4 py-2 rounded-full border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                    Annuler
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
+                    Supprimer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(annonceId, annonceTitle) {
+    document.getElementById('deleteAnnonceTitle').textContent = annonceTitle;
+    document.getElementById('deleteForm').action = '/annonces/' + annonceId;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+
+// Close modal on outside click
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+});
+</script>
 @endsection

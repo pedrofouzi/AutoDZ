@@ -42,9 +42,7 @@
                     {{ $brandName }} @if($modelName) • {{ $modelName }} @endif
                     @if($year) • {{ $year }} @endif
                     @if($mileage) • {{ number_format($mileage, 0, ',', ' ') }} km @endif
-                </p>
-                <p class="text-xs md:text-sm text-gray-400">
-                    Réf. #{{ $annonce->id }} @if($city) • {{ strtoupper($city) }} @endif
+                    @if($city) • {{ strtoupper($city) }} @endif
                 </p>
             </div>
 
@@ -64,8 +62,8 @@
             {{-- LEFT: main image slider + description --}}
             <div class="space-y-4">
                 {{-- Main image slider --}}
-                <div class="min-h-[70vh] flex items-center justify-center">
-                    <div class="relative bg-white rounded-3xl shadow-lg overflow-hidden max-w-4xl mx-auto my-12">
+                <div>
+                    <div class="relative bg-white rounded-3xl shadow-lg overflow-hidden">
                     {{-- Main displayed image --}}
                     <img id="main_car_image"
                          src="{{ $mainImage }}"
@@ -132,17 +130,15 @@
                             <dd class="text-gray-800 font-semibold">{{ $city ?? '—' }}</dd>
                         </div>
 
-                        <div>
-                            <dt class="text-gray-400">Type de véhicule</dt>
-                            <dd class="text-gray-800 font-semibold">{{ $annonce->vehicle_type ?? '—' }}</dd>
-                        </div>
                         {{-- Véhicule neuf ? --}}
+@if(($annonce->condition ?? 'non') === 'oui')
 <div>
     <dt class="text-gray-400">Véhicule neuf ?</dt>
     <dd class="text-gray-800 font-semibold">
-        {{ ($annonce->condition ?? 'non') === 'oui' ? 'Oui' : 'Non' }}
+        Oui
     </dd>
 </div>
+@endif
 
 {{-- Couleur --}}
 <div>
@@ -212,15 +208,7 @@
     @endif
 </p>
                         </div>
-
-                        <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-pink-50 text-pink-700">
-                            Vendeur
-                        </span>
                     </div>
-
-                    <p class="text-xs text-gray-500 mb-3">
-                        Fonctionnalité à connecter plus tard (appels, messages, etc.).
-                    </p>
 
                     <a href="{{ route('seller.show', $annonce->user) }}"
                        class="text-sm font-semibold text-pink-600 hover:underline">
@@ -233,8 +221,6 @@
 
                     @if($seller && $seller->phone && ($annonce->show_phone ?? true))
                         <div x-data="{ showPhone: false }" class="space-y-3 mb-4 mt-4">
-                            <p class="text-xs text-gray-500">Contact vendeur</p>
-
                             <button
                                 @click="showPhone = true; if(window.innerWidth < 800) window.location.href='tel:{{ $seller->phone }}';"
                                 class="w-full inline-flex items-center justify-center px-4 py-3
@@ -253,15 +239,25 @@
                     <div class="space-y-2 mt-4">
                         {{-- Bouton Envoyer un message --}}
                         @auth
-                            <form method="POST" action="{{ route('messages.start', $annonce) }}">
-                                @csrf
-                                <button type="submit"
-                                        class="w-full py-2 rounded-full border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600">
-                                    Envoyer un message
+                            @if(auth()->id() === $annonce->user_id)
+                                {{-- Own annonce - grayed out button --}}
+                                <button type="button" disabled
+                                        class="w-full py-2 rounded-full border border-gray-200 text-xs font-semibold text-gray-400 cursor-not-allowed bg-gray-50">
+                                    C'est votre annonce
                                 </button>
-                            </form>
+                            @else
+                                {{-- Can send message --}}
+                                <form method="POST" action="{{ route('messages.start', $annonce) }}">
+                                    @csrf
+                                    <button type="submit"
+                                            class="w-full py-2 rounded-full border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600">
+                                        Envoyer un message
+                                    </button>
+                                </form>
+                            @endif
                         @else
                             <a href="{{ route('login') }}"
+                               onclick="event.preventDefault(); sessionStorage.setItem('redirectAfterLogin', '{{ url()->current() }}'); window.location.href='{{ route('login') }}';"
                                class="w-full inline-flex items-center justify-center py-2 rounded-full border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600">
                                 Envoyer un message
                             </a>

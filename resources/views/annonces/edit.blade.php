@@ -32,28 +32,6 @@
         @csrf
         @method('PUT')
 
-        {{-- Type véhicule --}}
-        <div>
-            <label class="block text-xs font-semibold mb-2">Type de véhicule</label>
-            <input type="hidden" name="vehicle_type" id="vehicle_type_input" value="{{ old('vehicle_type', $annonce->vehicle_type ?? 'car') }}">
-
-            <div class="flex flex-wrap gap-2 text-xs">
-                @php
-                    $types = ['car' => 'Voiture', 'van' => 'Utilitaire', 'moto' => 'Moto'];
-                    $currentType = old('vehicle_type', $annonce->vehicle_type ?? 'car');
-                @endphp
-
-                @foreach($types as $value => $label)
-                    <button type="button"
-                            data-type="{{ $value }}"
-                            class="vehicle-type-btn-create px-3 py-1.5 rounded-full border
-                                {{ $currentType === $value ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-gray-700 border-gray-200' }}">
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-        </div>
-
         {{-- Véhicule neuf ? --}}
         <div>
             <p class="text-xs font-semibold mb-2">Véhicule neuf ? <span class="text-red-500">*</span></p>
@@ -134,22 +112,28 @@
                        class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
             </div>
             <div>
-                <label class="block text-xs font-semibold mb-1">Carburant</label>
-                <select name="carburant" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <label class="block text-xs font-semibold mb-1">Carburant <span class="text-red-500">*</span></label>
+                <select name="carburant" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('carburant') ? 'border-red-500' : '' }}">
                     <option value="">Sélectionnez</option>
                     @foreach(['Essence','Diesel','Hybride','Électrique'] as $fuel)
                         <option value="{{ $fuel }}" {{ old('carburant', $annonce->carburant) === $fuel ? 'selected' : '' }}>{{ $fuel }}</option>
                     @endforeach
                 </select>
+                @error('carburant')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
             <div>
-                <label class="block text-xs font-semibold mb-1">Boîte de vitesses</label>
-                <select name="boite_vitesse" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <label class="block text-xs font-semibold mb-1">Boîte de vitesses <span class="text-red-500">*</span></label>
+                <select name="boite_vitesse" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('boite_vitesse') ? 'border-red-500' : '' }}">
                     <option value="">Sélectionnez</option>
                     @foreach(['Manuelle','Automatique'] as $gear)
                         <option value="{{ $gear }}" {{ old('boite_vitesse', $annonce->boite_vitesse) === $gear ? 'selected' : '' }}>{{ $gear }}</option>
                     @endforeach
                 </select>
+                @error('boite_vitesse')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 

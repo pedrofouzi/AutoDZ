@@ -76,8 +76,9 @@
                 </div>
 
                 {{-- FORMULAIRE DE CONNEXION --}}
-                <form method="POST" action="{{ route('login') }}" class="space-y-4 flex-1 flex flex-col">
+                <form method="POST" action="{{ route('login') }}" class="space-y-4 flex-1 flex flex-col" id="loginForm">
                     @csrf
+                    <input type="hidden" name="redirect_to" id="redirect_to" value="">
 
                     {{-- Email --}}
                     <div>
@@ -147,4 +148,16 @@
 
         </div>
     </div>
+
+    <script>
+        // Check if there's a redirect URL stored in sessionStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+            if (redirectUrl) {
+                document.getElementById('redirect_to').value = redirectUrl;
+                // Clear the stored URL after retrieving it
+                sessionStorage.removeItem('redirectAfterLogin');
+            }
+        });
+    </script>
 @endsection

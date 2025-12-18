@@ -13,18 +13,16 @@ class AdminController extends Controller
         $stats = [
             'users'    => User::count(),
             'annonces' => Annonce::count(),
-            'views'    => (int) (Annonce::sum('views') ?? 0), // si colonne views existe
+            'active'   => Annonce::where('is_active', true)->count(),
+            'pending'  => Annonce::where('is_active', false)->count(),
+            'views'    => (int) (Annonce::sum('views') ?? 0),
         ];
 
         $latestAds = Annonce::with('user')
             ->latest()
-            ->take(8)
+            ->take(12)
             ->get();
 
-        $latestUsers = User::latest()
-            ->take(8)
-            ->get();
-
-        return view('admin.dashboard', compact('stats', 'latestAds', 'latestUsers'));
+        return view('admin.dashboard', compact('stats', 'latestAds'));
     }
 }

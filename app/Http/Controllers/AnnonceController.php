@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Annonce;
+use App\Jobs\ProcessAnnonceImages;
 use App\Models\CarBrand;
 use App\Models\CarModel;
 use Illuminate\Http\Request;
@@ -78,10 +79,28 @@ class AnnonceController extends Controller
 
     public function create()
     {
+        // Clean up any existing temp images from previous attempts
+        $this->cleanTempImages();
+        
         $brands = CarBrand::orderBy('name')->get();
         $models = CarModel::orderBy('name')->get();
 
         return view('annonces.create', compact('brands', 'models'));
+    }
+
+    public function cleanTempImages()
+    {
+        $tempImages = session('temp_images', []);
+        
+        foreach ($tempImages as $tempPath) {
+            if (Storage::disk('public')->exists($tempPath)) {
+                Storage::disk('public')->delete($tempPath);
+            }
+        }
+        
+        session()->forget('temp_images');
+        
+        return response()->json(['success' => true]);
     }
 
     public function store(Request $request)
@@ -95,8 +114,8 @@ class AnnonceController extends Controller
             'modele'        => 'nullable|string|max:100',
             'annee'         => 'nullable|integer|min:1980|max:' . (date('Y') + 1),
             'kilometrage'   => 'nullable|integer|min:0',
-            'carburant'     => 'nullable|string|max:50',
-            'boite_vitesse' => 'nullable|string|max:50',
+            'carburant'     => 'required|string|max:50',
+            'boite_vitesse' => 'required|string|max:50',
             'ville'         => 'nullable|string|max:100',
             'vehicle_type'  => 'nullable|string|max:50',
 
@@ -107,14 +126,19 @@ class AnnonceController extends Controller
 
             // ✅ Véhicule neuf ? oui/non
             'condition'     => ['required', 'in:oui,non'],
-
-            'images'        => 'nullable|array|max:5',
-            'images.*'      => 'image|mimes:jpg,jpeg,png,webp|max:4096',
+        ], [
+            'marque.required' => 'La marque est obligatoire.',
+            'titre.required' => 'Le titre est obligatoire.',
+            'prix.required' => 'Le prix est obligatoire.',
+            'carburant.required' => 'Le type de carburant est obligatoire.',
+            'boite_vitesse.required' => 'La boîte de vitesses est obligatoire.',
+            'condition.required' => 'Veuillez indiquer si le véhicule est neuf.',
         ]);
 
         $data['show_phone'] = $request->boolean('show_phone');
         $data['condition']  = $request->input('condition', 'non');
 
+        // Upload rapide (sans traitement) puis traitement async après réponse
         $imagePaths = [
             'image_path'   => null,
             'image_path_2' => null,
@@ -123,48 +147,21 @@ class AnnonceController extends Controller
             'image_path_5' => null,
         ];
 
-        // watermark chargé 1 fois
-        $watermarkBase = null;
-        $watermarkPath = public_path('watermark.png');
-        if (file_exists($watermarkPath)) {
-            $watermarkBase = Image::make($watermarkPath)->opacity(45);
-        }
-
+        $uploadedFiles = [];
         if ($request->hasFile('images')) {
-            $stored = [];
-
             foreach ($request->file('images') as $index => $file) {
                 if ($index >= 5) break;
 
-                $filename = 'annonces/' . Str::uuid() . '.jpg';
-                $image = Image::make($file->getRealPath())->orientate();
+                // Stockage brut rapide
+                $path = $file->store('annonces', 'public');
+                $uploadedFiles[] = $path;
 
-                // ✅ perf: resize
-                // Alléger le poids pour accélérer l'upload
-                $image->resize(1280, null, function ($c) {
-                    $c->aspectRatio();
-                    $c->upsize();
-                });
-
-                // ✅ watermark léger
-                if ($watermarkBase) {
-                    $wm = clone $watermarkBase;
-                    $wm->resize((int) ($image->width() * 0.18), null, function ($c) {
-                        $c->aspectRatio();
-                    });
-                    // Placer le watermark au centre de l'image
-                    $image->insert($wm, 'center');
-                }
-
-                Storage::disk('public')->put($filename, (string) $image->encode('jpg', 70));
-                $stored[] = $filename;
+                if ($index === 0) $imagePaths['image_path']   = $path;
+                if ($index === 1) $imagePaths['image_path_2'] = $path;
+                if ($index === 2) $imagePaths['image_path_3'] = $path;
+                if ($index === 3) $imagePaths['image_path_4'] = $path;
+                if ($index === 4) $imagePaths['image_path_5'] = $path;
             }
-
-            if (isset($stored[0])) $imagePaths['image_path']   = $stored[0];
-            if (isset($stored[1])) $imagePaths['image_path_2'] = $stored[1];
-            if (isset($stored[2])) $imagePaths['image_path_3'] = $stored[2];
-            if (isset($stored[3])) $imagePaths['image_path_4'] = $stored[3];
-            if (isset($stored[4])) $imagePaths['image_path_5'] = $stored[4];
         }
 
         $data = array_merge($data, $imagePaths);
@@ -172,6 +169,11 @@ class AnnonceController extends Controller
         $data['is_active'] = false; // ✅ En attente de validation admin par défaut
 
         $annonce = Annonce::create($data);
+
+        // Traitement image (resize + watermark) après réponse pour ne pas bloquer l'utilisateur
+        if (!empty($uploadedFiles)) {
+            ProcessAnnonceImages::dispatch($uploadedFiles)->afterResponse();
+        }
 
         return redirect()
             ->route('annonces.show', $annonce->id)
@@ -350,8 +352,8 @@ class AnnonceController extends Controller
             'modele'        => 'nullable|string|max:100',
             'annee'         => 'nullable|integer|min:1980|max:' . (date('Y') + 1),
             'kilometrage'   => 'nullable|integer|min:0',
-            'carburant'     => 'nullable|string|max:50',
-            'boite_vitesse' => 'nullable|string|max:50',
+            'carburant'     => 'required|string|max:50',
+            'boite_vitesse' => 'required|string|max:50',
             'ville'         => 'nullable|string|max:100',
             'vehicle_type'  => 'nullable|string|max:50',
 
@@ -453,6 +455,15 @@ class AnnonceController extends Controller
         if ($annonce->user_id !== Auth::id()) {
             abort(403, 'Vous ne pouvez supprimer que vos propres annonces.');
         }
+
+        // Store deletion info with sale status
+        \App\Models\AnnonceDeletion::create([
+            'annonce_id' => $annonce->id,
+            'user_id' => $annonce->user_id,
+            'titre' => $annonce->titre,
+            'prix' => $annonce->prix,
+            'was_sold' => request()->has('was_sold') && request('was_sold') === 'oui',
+        ]);
 
         $images = [
             $annonce->image_path,

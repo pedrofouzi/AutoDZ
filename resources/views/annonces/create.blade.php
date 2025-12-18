@@ -24,26 +24,6 @@
           class="bg-white rounded-2xl shadow p-4 md:p-6 space-y-6">
         @csrf
 
-        {{-- Type véhicule --}}
-        <div>
-            <label class="block text-xs font-semibold mb-2">Type de véhicule</label>
-            <input type="hidden" name="vehicle_type" id="vehicle_type_input" value="{{ old('vehicle_type', 'car') }}">
-            <div class="flex flex-wrap gap-2 text-xs">
-                @php
-                    $types = ['car' => 'Voiture', 'van' => 'Utilitaire', 'moto' => 'Moto'];
-                    $currentType = old('vehicle_type', 'car');
-                @endphp
-                @foreach($types as $value => $label)
-                    <button type="button"
-                            data-type="{{ $value }}"
-                            class="vehicle-type-btn-create px-3 py-1.5 rounded-full border
-                                {{ $currentType === $value ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-gray-700 border-gray-200' }}">
-                        {{ $label }}
-                    </button>
-                @endforeach
-            </div>
-        </div>
-
         {{-- Véhicule neuf ? --}}
         <div>
             <label class="block text-xs font-semibold mb-2">Véhicule neuf ? <span class="text-red-500">*</span></label>
@@ -59,6 +39,9 @@
                     Oui
                 </label>
             </div>
+            @error('condition')
+                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @enderror
         </div>
 
         {{-- Titre + prix --}}
@@ -66,14 +49,20 @@
             <div class="md:col-span-2">
                 <label class="block text-xs font-semibold mb-1">Titre de l'annonce <span class="text-red-500">*</span></label>
                 <input type="text" name="titre" value="{{ old('titre') }}"
-                       class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm"
+                       class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('titre') ? 'border-red-500' : '' }}"
                        placeholder="ex : Renault Clio 1.5 DCI 2018 très bon état">
+                @error('titre')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
             <div>
                 <label class="block text-xs font-semibold mb-1">Prix (DA) <span class="text-red-500">*</span></label>
                 <input type="number" name="prix" value="{{ old('prix') }}"
-                       class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm"
+                       class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('prix') ? 'border-red-500' : '' }}"
                        placeholder="ex : 2500000">
+                @error('prix')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
@@ -81,7 +70,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-xs font-semibold mb-1">Marque <span class="text-red-500">*</span></label>
-                <select name="marque" id="marque_select" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <select name="marque" id="marque_select" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('marque') ? 'border-red-500' : '' }}">
                     <option value="">Sélectionnez une marque</option>
                     @foreach($brands as $brand)
                         <option value="{{ $brand->name }}" {{ old('marque') === $brand->name ? 'selected' : '' }}>
@@ -89,6 +78,9 @@
                         </option>
                     @endforeach
                 </select>
+                @error('marque')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
@@ -123,8 +115,8 @@
             </div>
 
             <div>
-                <label class="block text-xs font-semibold mb-1">Carburant</label>
-                <select name="carburant" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <label class="block text-xs font-semibold mb-1">Carburant <span class="text-red-500">*</span></label>
+                <select name="carburant" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('carburant') ? 'border-red-500' : '' }}">
                     <option value="">Sélectionnez</option>
                     @foreach(['Essence','Diesel','Hybride','Électrique'] as $fuel)
                         <option value="{{ $fuel }}" {{ old('carburant') === $fuel ? 'selected' : '' }}>
@@ -132,11 +124,14 @@
                         </option>
                     @endforeach
                 </select>
+                @error('carburant')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <div>
-                <label class="block text-xs font-semibold mb-1">Boîte de vitesses</label>
-                <select name="boite_vitesse" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm">
+                <label class="block text-xs font-semibold mb-1">Boîte de vitesses <span class="text-red-500">*</span></label>
+                <select name="boite_vitesse" class="w-full border rounded-lg px-3 py-2 text-xs md:text-sm {{ $errors->has('boite_vitesse') ? 'border-red-500' : '' }}">
                     <option value="">Sélectionnez</option>
                     @foreach(['Manuelle','Automatique'] as $gear)
                         <option value="{{ $gear }}" {{ old('boite_vitesse') === $gear ? 'selected' : '' }}>
@@ -144,6 +139,9 @@
                         </option>
                     @endforeach
                 </select>
+                @error('boite_vitesse')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
@@ -250,9 +248,15 @@
                class="inline-flex items-center justify-center px-4 py-2 rounded-full border border-gray-200 text-xs md:text-sm text-gray-600 hover:border-gray-300">
                 Annuler
             </a>
-            <button type="submit"
+            <button type="submit" id="submitBtn"
                     class="inline-flex items-center justify-center px-6 py-2 rounded-full bg-pink-600 text-white text-xs md:text-sm font-semibold hover:bg-pink-700">
-                Publier l'annonce
+                <span id="submitText">Publier l'annonce</span>
+                <span id="submitLoader" class="hidden ml-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </span>
             </button>
         </div>
 
@@ -260,6 +264,142 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    let formSubmitted = false;
+
+    // Validation function
+    function validateForm() {
+        const errors = [];
+        const errorFields = [];
+        
+        // Reset all borders
+        document.querySelectorAll('input, select').forEach(field => {
+            field.classList.remove('border-red-500');
+        });
+        
+        // Titre
+        const titre = document.querySelector('input[name="titre"]');
+        if (!titre || !titre.value.trim()) {
+            errors.push('Le titre est obligatoire.');
+            if (titre) {
+                titre.classList.add('border-red-500');
+                errorFields.push(titre);
+            }
+        }
+        
+        // Prix
+        const prix = document.querySelector('input[name="prix"]');
+        if (!prix || !prix.value.trim()) {
+            errors.push('Le prix est obligatoire.');
+            if (prix) {
+                prix.classList.add('border-red-500');
+                errorFields.push(prix);
+            }
+        }
+        
+        // Marque
+        const marque = document.querySelector('select[name="marque"]');
+        if (!marque || !marque.value) {
+            errors.push('La marque est obligatoire.');
+            if (marque) {
+                marque.classList.add('border-red-500');
+                errorFields.push(marque);
+            }
+        }
+        
+        // Carburant
+        const carburant = document.querySelector('select[name="carburant"]');
+        if (!carburant || !carburant.value) {
+            errors.push('Le type de carburant est obligatoire.');
+            if (carburant) {
+                carburant.classList.add('border-red-500');
+                errorFields.push(carburant);
+            }
+        }
+        
+        // Boîte de vitesses
+        const boiteVitesse = document.querySelector('select[name="boite_vitesse"]');
+        if (!boiteVitesse || !boiteVitesse.value) {
+            errors.push('La boîte de vitesses est obligatoire.');
+            if (boiteVitesse) {
+                boiteVitesse.classList.add('border-red-500');
+                errorFields.push(boiteVitesse);
+            }
+        }
+        
+        return { errors, errorFields };
+    }
+
+    // Display errors
+    function displayErrors(errors, errorFields) {
+        // Remove existing error box
+        const existingError = document.querySelector('.validation-errors');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        if (errors.length === 0) return;
+        
+        const errorBox = document.createElement('div');
+        errorBox.className = 'validation-errors mb-4 text-xs md:text-sm bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3';
+        
+        let errorHtml = '<p class="font-semibold mb-1">Veuillez corriger les erreurs suivantes :</p><ul class="list-disc list-inside space-y-0.5">';
+        errors.forEach(error => {
+            errorHtml += `<li>${error}</li>`;
+        });
+        errorHtml += '</ul>';
+        
+        errorBox.innerHTML = errorHtml;
+        
+        // Insert before form
+        const form = document.querySelector('form');
+        form.parentNode.insertBefore(errorBox, form);
+        
+        // Scroll to first error field or error box
+        if (errorFields && errorFields.length > 0) {
+            errorFields[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // Form submit validation
+    const annonceForm = document.querySelector('form[action*="annonces"]');
+    if (annonceForm) {
+        console.log('Form found and listener being attached');
+        annonceForm.addEventListener('submit', function(e) {
+            console.log('Form submit event triggered');
+            
+            // Validate form
+            const result = validateForm();
+            console.log('Validation result:', result);
+            
+            if (result.errors.length > 0) {
+                console.log('Validation failed - preventing submission');
+                e.preventDefault();
+                e.stopPropagation();
+                displayErrors(result.errors, result.errorFields);
+                return false;
+            }
+            
+            console.log('Validation passed - showing loader');
+            formSubmitted = true;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const submitLoader = document.getElementById('submitLoader');
+            
+            if (submitBtn && submitText && submitLoader) {
+                submitBtn.disabled = true;
+                submitText.textContent = 'Publication en cours...';
+                submitLoader.classList.remove('hidden');
+            }
+        });
+    } else {
+        console.error('Form not found! Selector: form[action*="annonces"]');
+    }
+
+});
     const typeInputCreate = document.getElementById('vehicle_type_input');
     const typeButtonsCreate = document.querySelectorAll('.vehicle-type-btn-create');
 

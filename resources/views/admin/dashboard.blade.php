@@ -4,116 +4,124 @@
 <div class="max-w-6xl mx-auto py-10">
     <h1 class="text-3xl font-bold mb-6">Dashboard Admin</h1>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {{-- Stats Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="font-semibold">Annonces</h2>
-            <p class="text-sm text-gray-500">Gérer toutes les annonces</p>
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Total Annonces</h3>
+            <p class="text-3xl font-bold text-pink-600">{{ $stats['annonces'] ?? 0 }}</p>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="font-semibold">Utilisateurs</h2>
-            <p class="text-sm text-gray-500">Gérer les comptes</p>
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Actives</h3>
+            <p class="text-3xl font-bold text-green-600">{{ $stats['active'] ?? 0 }}</p>
         </div>
 
         <div class="bg-white p-6 rounded-xl shadow">
-            <h2 class="font-semibold">Statistiques</h2>
-            <p class="text-sm text-gray-500">Vues, annonces populaires</p>
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">En Attente</h3>
+            <p class="text-3xl font-bold text-yellow-600">{{ $stats['pending'] ?? 0 }}</p>
         </div>
-    </div>
-</div>
 
-
-            {{-- À activer plus tard quand on crée les pages --}}
-            <a href="{{ route('admin.annonces.index') }}"
-               class="px-4 py-2 rounded-full bg-pink-600 text-white text-xs font-semibold hover:bg-pink-700 inline-block">
-               Gérer les annonces
-            </a>
-
-            <a href="{{ route('admin.users.index') }}"
-               class="px-4 py-2 rounded-full border border-gray-200 text-xs font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600 inline-block">
-               Gérer les utilisateurs
-            </a>
+        <div class="bg-white p-6 rounded-xl shadow">
+            <h3 class="text-sm font-semibold text-gray-600 mb-2">Utilisateurs</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ $stats['users'] ?? 0 }}</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {{-- Latest ads --}}
-        <div class="bg-white rounded-2xl shadow p-5">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold">Dernières annonces</h2>
-                <span class="text-xs text-gray-400">{{ $latestAds->count() }} affichées</span>
-            </div>
+    {{-- Quick Actions --}}
+    <div class="mb-8 flex justify-center gap-3">
+        <a href="{{ route('admin.annonces.index') }}"
+           class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-sm font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600 inline-block">
+           Gérer les annonces
+        </a>
 
-            <div class="space-y-3">
-                @forelse($latestAds as $ad)
-                    <div class="flex items-center justify-between gap-3 border border-gray-100 rounded-xl p-3">
-                        <div class="min-w-0">
-                            <p class="text-sm font-semibold truncate">
-                                <a href="{{ route('annonces.show', $ad) }}" class="hover:text-pink-600">
-                                    {{ $ad->titre ?? 'Annonce #'.$ad->id }}
-                                </a>
-                            </p>
-                            <p class="text-[11px] text-gray-500">
-                                {{ $ad->marque }} @if($ad->modele) • {{ $ad->modele }} @endif
-                                • {{ $ad->created_at?->diffForHumans() }}
-                                @if(isset($ad->views)) • {{ $ad->views }} vue{{ $ad->views > 1 ? 's' : '' }} @endif
-                            </p>
-                            <p class="text-[11px] text-gray-400">
-                                Vendeur : {{ $ad->user?->name ?? '—' }}
-                            </p>
-                        </div>
+        <a href="{{ route('admin.users.index') }}"
+           class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-sm font-semibold text-gray-700 hover:border-pink-500 hover:text-pink-600 inline-block">
+           Gérer les utilisateurs
+        </a>
+    </div>
 
-                        <div class="text-right shrink-0 flex items-center gap-2">
-                            <p class="text-sm font-extrabold text-pink-600 mr-2">
+    {{-- Latest ads --}}
+    <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold">Dernières annonces</h2>
+            <span class="text-sm text-gray-500">{{ $latestAds->count() }} affichées</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600">
+                    <tr>
+                        <th class="text-left p-3">Annonce</th>
+                        <th class="text-left p-3">Vendeur</th>
+                        <th class="text-left p-3">Prix</th>
+                        <th class="text-center p-3">Vues</th>
+                        <th class="text-center p-3">Statut</th>
+                        <th class="text-center p-3">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($latestAds as $ad)
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-3">
+                                <div class="font-semibold truncate">{{ $ad->titre ?? 'Annonce #'.$ad->id }}</div>
+                                <div class="text-xs text-gray-500">
+                                    {{ $ad->marque }} @if($ad->modele) • {{ $ad->modele }} @endif • {{ $ad->created_at?->diffForHumans() }}
+                                </div>
+                            </td>
+
+                            <td class="p-3">
+                                <div class="font-medium">{{ $ad->user?->name ?? '—' }}</div>
+                                <div class="text-xs text-gray-500">{{ $ad->user?->email ?? '' }}</div>
+                            </td>
+
+                            <td class="p-3 font-bold text-pink-600">
                                 {{ number_format($ad->prix ?? 0, 0, ',', ' ') }} DA
-                            </p>
-                            <form method="POST" action="{{ route('admin.annonces.toggle', $ad) }}">
-                                @csrf
-                                @method('PATCH')
-                                <button class="px-3 py-1 rounded-full text-xs border {{ $ad->is_active ? 'border-gray-200 text-gray-700 hover:border-pink-500 hover:text-pink-600' : 'border-pink-500 text-pink-600 hover:bg-pink-50' }}">
-                                    {{ $ad->is_active ? 'Désactiver' : 'Activer' }}
-                                </button>
-                            </form>
-                            <form method="POST" action="{{ route('admin.annonces.destroy', $ad) }}" onsubmit="return confirm('Supprimer définitivement cette annonce ?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="px-3 py-1 rounded-full text-xs border border-red-200 text-red-600 hover:bg-red-50">Supprimer</button>
-                            </form>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-xs text-gray-500">Aucune annonce pour le moment.</p>
-                @endforelse
-            </div>
-        </div>
+                            </td>
 
-        {{-- Latest users --}}
-        <div class="bg-white rounded-2xl shadow p-5">
-            <div class="flex items-center justify-between mb-3">
-                <h2 class="text-sm font-semibold">Derniers utilisateurs</h2>
-                <span class="text-xs text-gray-400">{{ $latestUsers->count() }} affichés</span>
-            </div>
+                            <td class="p-3 text-center text-gray-600">
+                                {{ $ad->views ?? 0 }}
+                            </td>
 
-            <div class="space-y-3">
-                @forelse($latestUsers as $u)
-                    <div class="flex items-center justify-between gap-3 border border-gray-100 rounded-xl p-3">
-                        <div class="min-w-0">
-                            <p class="text-sm font-semibold truncate">
-                                {{ $u->name }}
-                                @if($u->is_admin)
-                                    <span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-pink-50 text-pink-700 font-semibold">
-                                        admin
-                                    </span>
+                            <td class="p-3 text-center">
+                                @if($ad->is_active)
+                                    <span class="inline-flex px-2 py-1 rounded-full text-xs bg-green-50 text-green-700 font-semibold">✓ Active</span>
+                                @else
+                                    <span class="inline-flex px-2 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700 font-semibold">⧖ Attente</span>
                                 @endif
-                            </p>
-                            <p class="text-[11px] text-gray-500 truncate">{{ $u->email }}</p>
-                            <p class="text-[11px] text-gray-400">Inscrit {{ $u->created_at?->diffForHumans() }}</p>
-                        </div>
-                    </div>
-                @empty
-                    <p class="text-xs text-gray-500">Aucun utilisateur pour le moment.</p>
-                @endforelse
-            </div>
+                            </td>
+
+                            <td class="p-3 text-center">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <form method="POST" action="{{ route('admin.annonces.toggle', $ad) }}" class="inline">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button class="px-2.5 py-1 rounded-lg border text-xs font-semibold
+                                            {{ $ad->is_active ? 'border-gray-200 text-gray-700 hover:border-pink-500 hover:text-pink-600' : 'border-green-500 text-green-600 hover:bg-green-50' }}">
+                                            {{ $ad->is_active ? 'Désactiver' : 'Activer' }}
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('admin.annonces.destroy', $ad) }}" class="inline"
+                                          onsubmit="return confirm('Supprimer cette annonce ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="px-2.5 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50">
+                                            Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="p-6 text-center text-gray-500">
+                                Aucune annonce pour le moment.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 

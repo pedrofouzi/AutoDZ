@@ -51,6 +51,7 @@ Route::middleware(['auth', 'banned'])->group(function () {
     */
     Route::get('/annonces/create', [AnnonceController::class, 'create'])->name('annonces.create');
     Route::post('/annonces', [AnnonceController::class, 'store'])->name('annonces.store');
+    Route::post('/annonces/clean-temp-images', [AnnonceController::class, 'cleanTempImages'])->name('annonces.cleanTempImages');
 
     Route::get('/annonces/{annonce}/edit', [AnnonceController::class, 'edit'])->name('annonces.edit');
     Route::put('/annonces/{annonce}', [AnnonceController::class, 'update'])->name('annonces.update');

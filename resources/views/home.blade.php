@@ -160,42 +160,7 @@
         </div>
     </section>
 
-    {{-- SECTION : Top deals --}}
-    <section class="mb-8">
-        <h2 class="text-xl font-semibold mb-4">Top deals</h2>
-        <div class="space-y-4">
-            @forelse ($topDeals as $annonce)
-                <a href="{{ route('annonces.show', $annonce->id) }}"
-                   class="bg-white rounded-2xl shadow flex flex-col md:flex-row overflow-hidden">
-                    <img src="{{ $annonce->image_url }}" alt="Photo voiture"
-                         class="w-full md:w-56 h-40 object-cover">
-                    <div class="flex-1 p-4 flex flex-col justify-between">
-                        <div>
-                            <h3 class="text-base md:text-lg font-semibold mb-1">{{ $annonce->titre }}</h3>
-                            <p class="text-xs text-gray-500 mb-1">
-                                {{ optional($annonce->marque)->name }} • {{ optional($annonce->modele)->name }}
-                            </p>
-                            <p class="text-xs text-gray-400">
-                                {{ $annonce->year ? $annonce->year . ' • ' : '' }}
-                                {{ $annonce->mileage ? number_format($annonce->mileage, 0, ',', ' ') . ' km • ' : '' }}
-                                {{ $annonce->fuel_type ?? '' }} {{ $annonce->gearbox ? ' • ' . $annonce->gearbox : '' }}
-                            </p>
-                        </div>
-                        <div class="mt-3 flex items-center justify-between">
-                            <p class="text-lg font-bold text-pink-600">
-                                {{ number_format($annonce->prix, 0, ',', ' ') }} DA
-                            </p>
-                            <p class="text-xs text-gray-500">
-                                {{ $annonce->city ?? '' }}
-                            </p>
-                        </div>
-                    </div>
-                </a>
-            @empty
-                <p class="text-xs text-gray-500">Aucun top deal disponible pour le moment.</p>
-            @endforelse
-        </div>
-    </section>
+
     <section id="about" class="mt-16 bg-white rounded-2xl shadow p-6 md:p-8">
     <h2 class="text-2xl font-bold mb-3">À propos de AutoDZ</h2>
 
@@ -222,45 +187,7 @@
 </section>
 
 
-    {{-- SECTION : Dernières annonces (tu peux réutiliser ton bloc existant ici) --}}
-    <section class="mb-8">
-        <h2 class="text-xl font-semibold mb-4">Dernières annonces</h2>
 
-        @if ($latestAds->count())
-            <div class="space-y-4">
-                @foreach ($latestAds as $annonce)
-                    <a href="{{ route('annonces.show', $annonce->id) }}"
-                       class="bg-white rounded-2xl shadow flex flex-col md:flex-row overflow-hidden">
-                        <img src="{{ $annonce->image_url }}" alt="Photo voiture"
-                             class="w-full md:w-56 h-40 object-cover">
-                        <div class="flex-1 p-4 flex flex-col justify-between">
-                            <div>
-                                <h3 class="text-base md:text-lg font-semibold mb-1">{{ $annonce->titre }}</h3>
-                                <p class="text-xs text-gray-500 mb-1">
-                                    {{ optional($annonce->marque)->name }} • {{ optional($annonce->modele)->name }}
-                                </p>
-                                <p class="text-xs text-gray-400">
-                                    {{ $annonce->year ? $annonce->year . ' • ' : '' }}
-                                    {{ $annonce->mileage ? number_format($annonce->mileage, 0, ',', ' ') . ' km • ' : '' }}
-                                    {{ $annonce->fuel_type ?? '' }} {{ $annonce->gearbox ? ' • ' . $annonce->gearbox : '' }}
-                                </p>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <p class="text-lg font-bold text-gray-900">
-                                    {{ number_format($annonce->prix, 0, ',', ' ') }} DA
-                                </p>
-                                <p class="text-xs text-gray-500">
-                                    {{ $annonce->city ?? '' }}
-                                </p>
-                            </div>
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        @else
-            <p class="text-xs text-gray-500">Aucune annonce trouvée pour ces critères.</p>
-        @endif
-    </section>
 
     {{-- JS: handle vehicle type buttons + dynamic models (si tu l’utilises déjà, fusionne) --}}
     <script>

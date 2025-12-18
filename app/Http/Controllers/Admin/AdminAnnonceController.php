@@ -12,31 +12,70 @@ class AdminAnnonceController extends Controller
     
     public function index(Request $request)
     {
-        $q = (string) $request->input('q', '');
-        $status = $request->input('status', 'all'); // all|active|inactive
+        $query = Annonce::with('user');
 
-        $query = Annonce::with('user')->latest();
-
-        if ($q !== '') {
+        // Recherche
+        if ($q = $request->input('q')) {
             $query->where(function ($qb) use ($q) {
-                $qb->where('titre', 'like', "%$q%");
-                $qb->orWhere('marque', 'like', "%$q%");
-                $qb->orWhere('modele', 'like', "%$q%");
-                $qb->orWhereHas('user', function ($uq) use ($q) {
-                    $uq->where('name', 'like', "%$q%")->orWhere('email', 'like', "%$q%");
-                });
+                $qb->where('titre', 'like', "%$q%")
+                   ->orWhere('marque', 'like', "%$q%")
+                   ->orWhere('modele', 'like', "%$q%")
+                   ->orWhereHas('user', function ($uq) use ($q) {
+                       $uq->where('name', 'like', "%$q%")->orWhere('email', 'like', "%$q%");
+                   });
             });
         }
 
-        if ($status === 'active') {
+        // Filtre par statut
+        $status = $request->input('status', 'all');
+        if ($status === 'pending') {
+            $query->where('is_active', false);
+        } elseif ($status === 'active') {
             $query->where('is_active', true);
         } elseif ($status === 'inactive') {
             $query->where('is_active', false);
         }
 
+        // Filtre par marque
+        if ($marque = $request->input('marque')) {
+            $query->where('marque', $marque);
+        }
+
+        // Filtre par carburant
+        if ($carburant = $request->input('carburant')) {
+            $query->where('carburant', $carburant);
+        }
+
+        // Tri
+        $sort = $request->input('sort', 'recent');
+        switch ($sort) {
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'price_high':
+                $query->orderBy('prix', 'desc');
+                break;
+            case 'price_low':
+                $query->orderBy('prix', 'asc');
+                break;
+            case 'recent':
+            default:
+                $query->latest();
+                break;
+        }
+
         $annonces = $query->paginate(20)->withQueryString();
 
-        return view('admin.annonces.index', compact('annonces', 'q', 'status'));
+        // Récupérer les marques uniques pour le filtre
+        $marques = Annonce::select('marque')
+            ->distinct()
+            ->whereNotNull('marque')
+            ->orderBy('marque')
+            ->pluck('marque');
+
+        $filters = $request->only(['q', 'status', 'marque', 'carburant', 'sort']);
+
+        return view('admin.annonces.index', compact('annonces', 'marques', 'filters'));
     }
 
     public function toggle(Annonce $annonce)

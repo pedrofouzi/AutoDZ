@@ -212,7 +212,7 @@
                     <input type="text"
                            name="q"
                            value="{{ request('q') }}"
-                           placeholder="Mots-clés (ex : BMW, clim, etc.)"
+                           placeholder="Marque, modèle, ..."
                            class="w-full border rounded-lg px-2 py-2 text-xs">
                 </div>
 

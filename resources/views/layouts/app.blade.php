@@ -38,12 +38,6 @@
             {{-- Actions droite --}}
             <div class="flex items-center space-x-3">
 
-                {{-- Bouton "Déposer mon annonce" toujours visible --}}
-                <a href="{{ route('annonces.create') }}"
-                   class="bg-pink-600 text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-pink-700 whitespace-nowrap">
-                    Déposer mon annonce
-                </a>
-
                 @auth
                     {{-- Calcul du nombre de messages non lus --}}
                     @php
@@ -55,6 +49,12 @@
                             ->where('sender_id', '!=', auth()->id())
                             ->count();
                     @endphp
+
+                    {{-- Bouton Déposer mon annonce --}}
+                    <a href="{{ route('annonces.create') }}"
+                       class="bg-pink-600 text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-pink-700 whitespace-nowrap">
+                        Déposer mon annonce
+                    </a>
 
                     {{-- Icône favoris --}}
                     <a href="{{ route('favorites.index') }}"
@@ -145,8 +145,12 @@
                         Se connecter
                     </a>
                     <a href="{{ route('register') }}"
-                       class="hidden sm:inline-flex items-center justify-center text-xs md:text-sm bg-pink-600 text-white px-3 py-1.5 rounded-full hover:bg-pink-700">
-                        S’inscrire
+                       class="hidden sm:inline-flex items-center justify-center text-xs md:text-sm text-gray-700 hover:text-pink-600">
+                        S'inscrire
+                    </a>
+                    <a href="{{ route('annonces.create') }}"
+                       class="bg-pink-600 text-white text-sm font-semibold px-4 py-2 rounded-full hover:bg-pink-700 whitespace-nowrap">
+                        Déposer mon annonce
                     </a>
                 @endauth
 
