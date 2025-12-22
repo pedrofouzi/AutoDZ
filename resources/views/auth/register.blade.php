@@ -49,11 +49,11 @@
                             <span class="text-lg"></span>
                             <span class="hidden md:inline">Apple</span>
                         </button>
-                        <button type="button"
-                                class="border border-gray-200 rounded-full py-2 flex items-center justify-center gap-2 hover:bg-gray-50">
+                        <a href="{{ route('auth.google') }}"
+                           class="border border-gray-200 rounded-full py-2 flex items-center justify-center gap-2 hover:bg-gray-50">
                             <span class="text-lg">G</span>
                             <span class="hidden md:inline">Google</span>
-                        </button>
+                        </a>
                         <button type="button"
                                 class="border border-gray-200 rounded-full py-2 flex items-center justify-center gap-2 hover:bg-gray-50">
                             <span class="text-lg">f</span>

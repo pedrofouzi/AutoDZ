@@ -71,11 +71,11 @@ class Annonce extends Model
     public function scopeFilter($query, array $filters)
     {
         if (!empty($filters['marque'])) {
-            $query->where('marque', $filters['marque']);
+            $query->where('marque', 'like', '%' . $filters['marque'] . '%');
         }
 
         if (!empty($filters['modele'])) {
-            $query->where('modele', $filters['modele']);
+            $query->where('modele', 'like', '%' . $filters['modele'] . '%');
         }
 
         if (!empty($filters['price_max'])) {

@@ -11,6 +11,15 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\AdminAnnonceController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Auth\GoogleController;
+
+/*
+|--------------------------------------------------------------------------
+| GOOGLE OAUTH
+|--------------------------------------------------------------------------
+*/
+Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 /*
 |--------------------------------------------------------------------------

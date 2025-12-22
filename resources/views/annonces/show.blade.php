@@ -64,12 +64,13 @@
                 {{-- Main image slider --}}
                 <div>
                     <div class="relative bg-white rounded-3xl shadow-lg overflow-hidden">
-                    {{-- Main displayed image --}}
+                    {{-- Main displayed image with zoom effect --}}
                     <img id="main_car_image"
                          src="{{ $mainImage }}"
                          alt="Photo véhicule"
-                            class="w-full h-80 md:h-[28rem] object-cover transition-all duration-200 cursor-pointer hover:opacity-95"
-                         onclick="openLightbox(0)">
+                            class="w-full h-80 md:h-[28rem] object-cover transition-all duration-200 cursor-zoom-in hover:scale-[1.02]"
+                         onclick="openLightbox(0)"
+                         title="Cliquez pour agrandir">
 
                     {{-- Left arrow --}}
                     <button type="button"
@@ -350,46 +351,98 @@
         @endif
     </div>
 
-    {{-- Lightbox modal --}}
-    <div id="lightbox" class="hidden fixed inset-0 bg-black/95 flex items-center justify-center" style="z-index: 9999;">
+    {{-- Lightbox modal stylé --}}
+    <div id="lightbox" class="hidden fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center transition-all duration-300" style="z-index: 9999;">
         <div class="relative w-full h-full">
             <!-- Image centrée + contrôles overlay liés à l'image -->
             <div class="flex items-center justify-center p-6 w-full h-full">
                 <div class="relative inline-block w-[92vw] h-[88vh]">
-                    <!-- Bouton fermer (sur la photo, coin haut droit) -->
+                    <!-- Bouton fermer stylé -->
                     <button onclick="closeLightbox()" 
-                            class="absolute top-2 right-2 w-12 h-12 rounded-full bg-white/90 text-gray-800 text-2xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            class="absolute -top-12 right-0 md:top-2 md:right-2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-pink-600 text-white text-xl md:text-2xl font-bold hover:bg-pink-700 hover:scale-110 transition-all duration-200 flex items-center justify-center shadow-2xl"
                             style="z-index: 10000;">
-                        ✕
+                        <svg class="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
                     </button>
+                    
                     <img id="lightbox_image" 
                          src="" 
                          alt="Photo agrandie" 
-                         class="max-w-full max-h-full w-full h-full object-contain rounded-2xl shadow-2xl">
+                         class="max-w-full max-h-full w-full h-full object-contain rounded-xl md:rounded-2xl shadow-2xl transition-all duration-300">
 
-                    <!-- Bouton précédent (sur l'image) -->
+                    <!-- Bouton précédent stylé -->
                     <button id="lightbox_prev_btn" onclick="prevLightboxImage(event)" 
-                            class="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 text-gray-800 text-4xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/95 hover:bg-pink-600 text-gray-800 hover:text-white text-3xl md:text-4xl font-bold transition-all duration-200 flex items-center justify-center shadow-2xl hover:scale-110"
                             style="z-index: 10000;">
-                        ‹
+                        <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"/>
+                        </svg>
                     </button>
 
-                    <!-- Bouton suivant (sur l'image) -->
+                    <!-- Bouton suivant stylé -->
                     <button id="lightbox_next_btn" onclick="nextLightboxImage(event)" 
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-white/90 text-gray-800 text-4xl font-bold hover:bg-white transition flex items-center justify-center shadow-xl"
+                            class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-white/95 hover:bg-pink-600 text-gray-800 hover:text-white text-3xl md:text-4xl font-bold transition-all duration-200 flex items-center justify-center shadow-2xl hover:scale-110"
                             style="z-index: 10000;">
-                        ›
+                        <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"/>
+                        </svg>
                     </button>
 
-                    <!-- Compteur (sur l'image, en bas-centre) -->
+                    <!-- Compteur stylé avec icône -->
                     <div id="lightbox_counter" 
-                         class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 text-gray-800 px-5 py-2 rounded-full text-sm font-semibold shadow-xl"
+                         class="absolute bottom-2 md:bottom-4 left-1/2 -translate-x-1/2 bg-pink-600 text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-2xl flex items-center gap-2"
                          style="z-index: 10000;">
-                        1 / 1
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                        <span>1 / 1</span>
                     </div>
                 </div>
             </div>
     </div>
+
+    {{-- Style CSS pour animations lightbox --}}
+    <style>
+        #lightbox {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        #lightbox_image {
+            transform: scale(0.95);
+            transition: opacity 0.15s ease-in-out, transform 0.3s ease-in-out;
+        }
+        
+        /* Curseur zoom-in personnalisé */
+        .cursor-zoom-in {
+            cursor: zoom-in;
+        }
+        
+        /* Animation hover sur l'image principale */
+        #main_car_image {
+            position: relative;
+        }
+        
+        #main_car_image::after {
+            content: '🔍';
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(236, 72, 153, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        
+        #main_car_image:hover::after {
+            opacity: 1;
+        }
+    </style>
 
     {{-- Simple image slider --}}
     <script>
@@ -439,7 +492,15 @@
             lightboxIndex = index;
             updateLightbox();
             const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightbox_image');
+            
+            // Animation d'ouverture
             lightbox.classList.remove('hidden');
+            setTimeout(() => {
+                lightbox.style.opacity = '1';
+                lightboxImage.style.transform = 'scale(1)';
+            }, 10);
+            
             document.body.style.overflow = 'hidden';
 
             // Masquer les boutons si une seule image
@@ -455,18 +516,38 @@
         }
 
         function closeLightbox() {
-            document.getElementById('lightbox').classList.add('hidden');
-            document.body.style.overflow = '';
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightbox_image');
+            
+            // Animation de fermeture
+            lightbox.style.opacity = '0';
+            lightboxImage.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                lightbox.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 200);
         }
 
         function updateLightbox() {
             const lightboxImg = document.getElementById('lightbox_image');
             const lightboxCounter = document.getElementById('lightbox_counter');
+            const counterSpan = lightboxCounter?.querySelector('span');
+            
             if (lightboxImg && images[lightboxIndex]) {
-                lightboxImg.src = images[lightboxIndex];
+                // Animation de transition
+                lightboxImg.style.opacity = '0.5';
+                lightboxImg.style.transform = 'scale(0.95)';
+                
+                setTimeout(() => {
+                    lightboxImg.src = images[lightboxIndex];
+                    lightboxImg.style.opacity = '1';
+                    lightboxImg.style.transform = 'scale(1)';
+                }, 150);
             }
-            if (lightboxCounter) {
-                lightboxCounter.textContent = (lightboxIndex + 1) + ' / ' + images.length;
+            
+            if (counterSpan) {
+                counterSpan.textContent = (lightboxIndex + 1) + ' / ' + images.length;
             }
         }
 
