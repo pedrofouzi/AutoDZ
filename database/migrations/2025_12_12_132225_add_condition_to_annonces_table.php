@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('annonces', function (Blueprint $table) {
-            //
-            $table->string('condition')->default('occasion');
+            if (!Schema::hasColumn('annonces', 'condition')) {
+                $table->string('condition')->default('occasion');
+            }
         });
-        
-
     }
 
     /**
@@ -25,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('annonces', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('annonces', 'condition')) {
+                $table->dropColumn('condition');
+            }
         });
     }
 };

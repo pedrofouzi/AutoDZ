@@ -1,0 +1,93 @@
+[
+    {
+        "id": 1,
+        "name": "Peugeot",
+        "region": "FR",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 2,
+        "name": "Citro\u00ebn",
+        "region": "FR",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 3,
+        "name": "Renault",
+        "region": "FR",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 4,
+        "name": "Audi",
+        "region": "DE",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 5,
+        "name": "BMW",
+        "region": "DE",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 6,
+        "name": "Mercedes-Benz",
+        "region": "DE",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 7,
+        "name": "Volkswagen",
+        "region": "DE",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 8,
+        "name": "Skoda",
+        "region": "CZ",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 9,
+        "name": "SEAT",
+        "region": "ES",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 10,
+        "name": "Hyundai",
+        "region": "KR",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 11,
+        "name": "Kia",
+        "region": "KR",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 12,
+        "name": "Toyota",
+        "region": "JP",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    },
+    {
+        "id": 13,
+        "name": "Nissan",
+        "region": "JP",
+        "created_at": "2025-12-09T19:52:42.000000Z",
+        "updated_at": "2025-12-09T19:52:42.000000Z"
+    }
+]
