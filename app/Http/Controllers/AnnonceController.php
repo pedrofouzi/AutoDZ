@@ -117,7 +117,7 @@ class AnnonceController extends Controller
             'carburant'     => 'required|string|max:50',
             'boite_vitesse' => 'required|string|max:50',
             'ville'         => 'nullable|string|max:100',
-            'vehicle_type'  => 'nullable|string|max:50',
+            'vehicle_type'  => 'required|string|max:50',
 
             'show_phone'    => ['nullable', 'boolean'],
             'couleur'       => ['nullable', 'string', 'max:50'],
@@ -132,6 +132,7 @@ class AnnonceController extends Controller
             'prix.required' => 'Le prix est obligatoire.',
             'carburant.required' => 'Le type de carburant est obligatoire.',
             'boite_vitesse.required' => 'La boîte de vitesses est obligatoire.',
+            'vehicle_type.required' => 'Le type de véhicule est obligatoire.',
             'condition.required' => 'Veuillez indiquer si le véhicule est neuf.',
         ]);
 

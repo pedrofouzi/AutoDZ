@@ -44,6 +44,35 @@
             @enderror
         </div>
 
+        {{-- Type de véhicule --}}
+        <div>
+            <label class="block text-xs font-semibold mb-2">Type de véhicule <span class="text-red-500">*</span></label>
+            <input type="hidden" name="vehicle_type" id="vehicle_type_input" value="{{ old('vehicle_type') }}">
+            <div class="flex items-center gap-2 text-xs md:text-sm">
+                <button type="button"
+                        data-type="Voiture"
+                        class="vehicle-type-btn-create flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs md:text-sm
+                               {{ old('vehicle_type') === 'Voiture' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-gray-700 border-gray-200' }}">
+                    🚗 Voiture
+                </button>
+                <button type="button"
+                        data-type="Utilitaire"
+                        class="vehicle-type-btn-create flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs md:text-sm
+                               {{ old('vehicle_type') === 'Utilitaire' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-gray-700 border-gray-200' }}">
+                    🚐 Utilitaire
+                </button>
+                <button type="button"
+                        data-type="Moto"
+                        class="vehicle-type-btn-create flex-1 flex items-center justify-center gap-1 py-2 rounded-full border text-xs md:text-sm
+                               {{ old('vehicle_type') === 'Moto' ? 'bg-pink-600 text-white border-pink-600' : 'bg-white text-gray-700 border-gray-200' }}">
+                    🏍 Moto
+                </button>
+            </div>
+            @error('vehicle_type')
+                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
         {{-- Titre + prix --}}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
