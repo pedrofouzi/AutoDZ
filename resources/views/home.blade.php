@@ -103,7 +103,7 @@
             {{-- RIGHT : Marketing block "vendre son véhicule" --}}
             <div class="flex-1">
                 <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-4">
-                    Trouvez <span class="text-pink-500">la voiture d’occasion</span><br>
+                    Trouvez <span class="text-pink-600">la voiture d'occasion</span><br>
                     qui vous correspond
                 </h1>
                 <p class="text-gray-600 text-sm md:text-base mb-6 max-w-xl">
