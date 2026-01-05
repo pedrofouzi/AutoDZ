@@ -1,6 +1,7 @@
 ﻿@extends('layouts.app')
 
 @section('content')
+<!-- Force cache refresh v2 -->
 <div class="max-w-6xl mx-auto px-4 py-6 md:py-8">
     {{-- Title + total results --}}
     <div class="flex flex-row items-end justify-between gap-2 mb-6">
